@@ -19,6 +19,7 @@ package filesync.ui;
 import filesync.SyncIndex;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import javax.swing.table.AbstractTableModel;
 
 /**
@@ -29,7 +30,7 @@ import javax.swing.table.AbstractTableModel;
 public class TableModel extends AbstractTableModel {
 
     private final String[] columns;
-    private final ArrayList<SyncIndex> rows;
+    private final List<SyncIndex> rows;
 
     public TableModel() {
         this.columns = new String[]{"Folder 1", "Folder 2"};

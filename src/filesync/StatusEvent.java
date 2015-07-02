@@ -16,6 +16,7 @@
  */
 package filesync;
 
+import filesync.engine.SyncStats;
 import java.util.EventObject;
 
 /**
@@ -26,25 +27,23 @@ import java.util.EventObject;
 public class StatusEvent extends EventObject {
 
     private final boolean syncing;
-    private final double percent;
+    private final SyncStats stats;
 
-    public StatusEvent(Object source, boolean syncing, boolean paused) {
+    public StatusEvent(Object source, boolean syncing, SyncStats stats) {
         super(source);
         this.syncing = syncing;
-        this.percent = 0;
-    }
-    
-    public StatusEvent(Object source, boolean syncing, double percent) {
-        super(source);
-        this.syncing = syncing;
-        this.percent = percent;
+        this.stats = stats;
     }
 
     public boolean isSyncing() {
         return syncing;
     }
+    
+    public SyncStats getStats() {
+        return stats;
+    }
 
     public double getPercent() {
-        return percent;
+        return stats.getProcessedCount() / stats.getFileCount();
     }
 }

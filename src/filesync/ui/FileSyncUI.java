@@ -26,7 +26,9 @@ import filesync.UIListener;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JFileChooser;
 import javax.swing.table.DefaultTableModel;
 
@@ -36,7 +38,7 @@ import javax.swing.table.DefaultTableModel;
  */
 public class FileSyncUI extends javax.swing.JFrame implements ActionListener {
 
-    private final ArrayList<UIListener> _uiListeners;
+    private final List<UIListener> _uiListeners;
 
     /**
      * Creates new form FileSyncUI
@@ -316,11 +318,11 @@ public class FileSyncUI extends javax.swing.JFrame implements ActionListener {
         chooser.setDialogTitle("Select Directory");
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         chooser.setAcceptAllFileFilterUsed(false);
-        ArrayList<File> directories = new ArrayList<>();
+        List<Path> directories = new ArrayList<>();
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            directories.add(chooser.getSelectedFile());
+            directories.add(chooser.getSelectedFile().toPath());
             if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                directories.add(chooser.getSelectedFile());
+                directories.add(chooser.getSelectedFile().toPath());
                 model.addRow(new SyncIndex("", directories));
             }
         }

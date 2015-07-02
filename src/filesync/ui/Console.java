@@ -21,6 +21,7 @@ import static filesync.UIAction.Sync;
 import filesync.UIEvent;
 import filesync.UIListener;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -29,7 +30,7 @@ import java.util.ArrayList;
  */
 public class Console {
 
-    private final ArrayList<UIListener> _uiListeners;
+    private final List<UIListener> _uiListeners;
     private boolean gui;
 
     public Console(String[] args) {

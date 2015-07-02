@@ -32,6 +32,15 @@ public class SyncFile implements Serializable {
         this.name = name;
     }
 
+    public String getName() {
+        return name;
+    }
+    
+    @Override
+    public String toString() {
+        return name;
+    }
+
     /**
      * Get the value of size
      *
@@ -41,7 +50,6 @@ public class SyncFile implements Serializable {
         return size;
     }
 
-
     /**
      * Set the value of size
      *
@@ -49,14 +57,5 @@ public class SyncFile implements Serializable {
      */
     public void setSize(int size) {
         this.size = size;
-    }
-
-    public String getName() {
-        return name;
-    }
-    
-    @Override
-    public String toString() {
-        return name;
     }
 }

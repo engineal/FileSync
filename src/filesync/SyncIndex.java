@@ -16,9 +16,9 @@
  */
 package filesync;
 
-import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.nio.file.Path;
+import java.util.List;
 
 /**
  *
@@ -28,14 +28,14 @@ import java.util.ArrayList;
 public class SyncIndex extends SyncDirectory implements Serializable {
 
     public static final long serialVersionUID = 1;
-    private final ArrayList<File> directories;
+    private final List<Path> directories;
 
-    public SyncIndex(String name, ArrayList<File> directories) {
+    public SyncIndex(String name, List<Path> directories) {
         super(name);
         this.directories = directories;
     }
 
-    public ArrayList<File> getDirectories() {
+    public List<Path> getDirectories() {
         return directories;
     }
 }

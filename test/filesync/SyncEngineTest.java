@@ -16,6 +16,7 @@
  */
 package filesync;
 
+import filesync.engine.SyncEngine;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

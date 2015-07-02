@@ -31,6 +31,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -42,7 +43,7 @@ import javax.swing.JPopupMenu;
  */
 public class FileSyncSystemTray implements ActionListener {
 
-    private final ArrayList<UIListener> _uiListeners;
+    private final List<UIListener> _uiListeners;
 
     private final JPopupMenu popup;
     private final JMenuItem settingsItem;

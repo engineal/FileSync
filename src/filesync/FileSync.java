@@ -16,6 +16,7 @@
  */
 package filesync;
 
+import filesync.engine.SyncEngine;
 import filesync.ui.Console;
 import filesync.ui.FileSyncSystemTray;
 import filesync.ui.FileSyncUI;
@@ -26,7 +27,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -59,6 +62,53 @@ public class FileSync implements StatusListener, UIListener {
         sync.processArgs(args);
     }
 
+    private static SyncIndex loadSyncIndex(String file) {
+        if (new File(file).exists()) {
+            try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
+                log.log(Level.FINE, "Opening {0}", file);
+                return (SyncIndex) in.readObject();
+            } catch (IOException | ClassNotFoundException ex) {
+                log.log(Level.SEVERE, ex.toString(), ex);
+            }
+        }
+        log.log(Level.FINE, "Could not open {0}, creating default instead.", file);
+
+        List<Path> directories = new ArrayList<>();
+        directories.add(new File("Dir1").toPath());
+        directories.add(new File("Dir2").toPath());
+        return new SyncIndex("Sync", directories);
+    }
+
+    private static void saveSyncIndex(String file, SyncIndex index) {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
+            log.log(Level.FINE, "Saving {0}", index);
+            out.writeObject(index);
+        } catch (IOException ex) {
+            log.log(Level.SEVERE, ex.toString(), ex);
+        }
+    }
+
+
+    private FileSyncUI settings;
+    private FileSyncSystemTray tray;
+    private SyncEngine syncEngine;
+
+    private FileSync() {
+        try {
+            FileHandler fh = new FileHandler("log.log");
+            fh.setFormatter(new LogFormatter());
+            fh.setLevel(Level.ALL);
+            log.addHandler(fh);
+            ConsoleHandler ch = new ConsoleHandler();
+            ch.setFormatter(new LogFormatter());
+            ch.setLevel(Level.ALL);
+            log.addHandler(ch);
+            log.setLevel(Level.ALL);
+        } catch (IOException | SecurityException ex) {
+            log.log(Level.SEVERE, ex.toString(), ex);
+        }
+    }
+
     private void processArgs(String[] args) {
         Console console = new Console(args);
         console.addUIListener(this);
@@ -79,52 +129,6 @@ public class FileSync implements StatusListener, UIListener {
                     log.log(Level.SEVERE, ex.toString(), ex);
                 }
             });
-        }
-    }
-
-    private static SyncIndex loadSyncIndex(String file) {
-        if (new File(file).exists()) {
-            try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
-                log.log(Level.FINE, "Opening {0}", file);
-                return (SyncIndex) in.readObject();
-            } catch (IOException | ClassNotFoundException ex) {
-                log.log(Level.SEVERE, ex.toString(), ex);
-            }
-        }
-        log.log(Level.FINE, "Could not open {0}, creating default instead.", file);
-
-        ArrayList<File> directories = new ArrayList<>();
-        directories.add(new File("Dir1"));
-        directories.add(new File("Dir2"));
-        return new SyncIndex("Sync", directories);
-    }
-
-    private static void saveSyncIndex(String file, SyncIndex index) {
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
-            log.log(Level.FINE, "Saving {0}", index);
-            out.writeObject(index);
-        } catch (IOException ex) {
-            log.log(Level.SEVERE, ex.toString(), ex);
-        }
-    }
-
-    private FileSyncUI settings;
-    private SyncEngine syncEngine;
-    private FileSyncSystemTray tray;
-
-    public FileSync() {
-        try {
-            FileHandler fh = new FileHandler("log.log");
-            fh.setFormatter(new LogFormatter());
-            fh.setLevel(Level.ALL);
-            log.addHandler(fh);
-            ConsoleHandler ch = new ConsoleHandler();
-            ch.setFormatter(new LogFormatter());
-            ch.setLevel(Level.ALL);
-            log.addHandler(ch);
-            log.setLevel(Level.ALL);
-        } catch (IOException | SecurityException ex) {
-            log.log(Level.SEVERE, ex.toString(), ex);
         }
     }
 

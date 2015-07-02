@@ -14,17 +14,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package filesync;
+package filesync.engine;
 
+import filesync.FileSync;
+import filesync.StatusEvent;
+import filesync.StatusListener;
+import filesync.SyncDirectory;
+import filesync.SyncFile;
+import filesync.SyncIndex;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -52,42 +65,38 @@ public class SyncEngine implements Runnable {
     }
 
     private final SyncIndex index;
+    private SyncStats stats;
     private boolean paused;
-    private int fileCount;
-    private int filesAdded;
-    private int filesUnmodified;
-    private int filesModified;
-    private int filesRemoved;
-    private int processedCount;
     private final Thread thread;
-    private final ArrayList<StatusListener> _statusListeners;
+    private final List<StatusListener> _statusListeners;
 
     public SyncEngine(SyncIndex index) {
         this.index = index;
         paused = false;
         thread = new Thread(this, "FileSync Engine");
         _statusListeners = new ArrayList<>();
+
+        try {
+            WatchService watcher = FileSystems.getDefault().newWatchService();
+
+            for (Path directory : index.getDirectories()) {
+                WatchKey key = directory.register(watcher,
+                        ENTRY_CREATE,
+                        ENTRY_DELETE,
+                        ENTRY_MODIFY);
+            }
+        } catch (IOException ex) {
+            log.log(Level.SEVERE, null, ex);
+        }
     }
 
-    private synchronized void compareDirs(SyncIndex index) throws IOException, InterruptedException {
-        fileCount += index.fileCount();
-        filesAdded = 0;
-        filesUnmodified = 0;
-        filesModified = 0;
-        filesRemoved = 0;
-        processedCount = 0;
-        compareDirs(index, index.getDirectories());
-        log.log(Level.FINE, "Total files: {0}\nTotal files added: {1}\nTotal files unmodified: {2}\nTotal files modified: {3}\nTotal files removed: {4}", new Object[]{fileCount, filesAdded, filesUnmodified, filesModified, filesRemoved});
-        fireSyncStatusEvent(false, 0);
-    }
-
-    private synchronized void compareDirs(SyncDirectory index, File dir1, File dir2) throws IOException, InterruptedException {
+    private synchronized void compareDirs(SyncDirectory index, List directories) throws IOException, InterruptedException {
         Queue<SyncFile> files = new LinkedList<>(index);
-        FileQueue dir1Files = new FileQueue(dir1.listFiles());
-        FileQueue dir2Files = new FileQueue(dir2.listFiles());
+        Queue<File> dir1Files = new LinkedList<File>(dir1.listFiles());
+        Queue<File> dir2Files = new LinkedList<File>(dir2.listFiles());
 
         while (!files.isEmpty()) {
-            fireSyncStatusEvent(true, (double) processedCount / fileCount);
+            fireSyncStatusEvent(true, stats);
             if (paused) {
                 wait();
             }
@@ -103,8 +112,7 @@ public class SyncEngine implements Runnable {
                     removeFile(file2);
                 }
                 index.remove(file);
-                processedCount++;
-                filesRemoved++;
+                stats.increaseFilesRemoved();
                 log.log(Level.FINE, "{0} removed from database", file);
             } else if (file1.lastModified() != file2.lastModified() || file1.length() != file2.length()) {
                 if (file1.lastModified() > file2.lastModified()) {
@@ -112,23 +120,22 @@ public class SyncEngine implements Runnable {
                 } else {
                     copyFile(file2, dir1);
                 }
-                processedCount++;
-                filesModified++;
+                stats.increaseFilesModified();
                 log.log(Level.FINE, "{0} modified", file);
             } else {
-                processedCount++;
-                filesUnmodified++;
+                stats.increaseFilesUnmodified();
                 log.log(Level.FINE, "{0} unmodified", file);
             }
+            stats.increaseProcessedCount();
 
             if (file1 != null && file2 != null && file instanceof SyncDirectory) {
                 compareDirs((SyncDirectory) file, file1, file2);
             }
         }
 
-        fileCount += dir1Files.size();
+        stats.increaseFileCount(dir1Files.size());
         while (!dir1Files.isEmpty()) {
-            fireSyncStatusEvent(true, (double) processedCount / fileCount);
+            fireSyncStatusEvent(true, stats);
             if (paused) {
                 wait();
             }
@@ -147,25 +154,22 @@ public class SyncEngine implements Runnable {
                 copyFile(file1, dir2);
             }
 
+            SyncFile file;
             if (file1.isDirectory()) {
-                SyncDirectory file = new SyncDirectory(file1.getName());
+                file = new SyncDirectory(file1.getName());
                 compareDirs((SyncDirectory) file, file1, file2);
-                index.add(file);
-                processedCount++;
-                filesAdded++;
-                log.log(Level.FINE, "{0} added to database", file);
             } else {
-                SyncFile file = new SyncFile(file1.getName());
-                index.add(file);
-                processedCount++;
-                filesAdded++;
-                log.log(Level.FINE, "{0} added to database", file);
+                file = new SyncFile(file1.getName());
             }
+            index.add(file);
+            stats.increaseProcessedCount();
+            stats.increaseFilesAdded();
+            log.log(Level.FINE, "{0} added to database", file);
         }
 
-        fileCount += dir2Files.size();
+        stats.increaseFileCount(dir2Files.size());
         while (!dir2Files.isEmpty()) {
-            fireSyncStatusEvent(true, (double) processedCount / fileCount);
+            fireSyncStatusEvent(true, stats);
             if (paused) {
                 wait();
             }
@@ -173,25 +177,27 @@ public class SyncEngine implements Runnable {
 
             copyFile(file2, dir1);
 
+            SyncFile file;
             if (file2.isDirectory()) {
-                SyncDirectory file = new SyncDirectory(file2.getName());
+                file = new SyncDirectory(file2.getName());
                 compareDirs((SyncDirectory) file, file2, file2);
-                index.add(file);
-                processedCount++;
-                log.log(Level.FINE, "{0} added to database", file);
             } else {
-                SyncFile file = new SyncFile(file2.getName());
-                index.add(file);
-                processedCount++;
-                log.log(Level.FINE, "{0} added to database", file);
+                file = new SyncFile(file2.getName());
             }
+            index.add(file);
+            stats.increaseProcessedCount();
+            stats.increaseFilesAdded();
+            log.log(Level.FINE, "{0} added to database", file);
         }
     }
 
     @Override
     public void run() {
         try {
-            compareDirs(index);
+            stats = new SyncStats(index.fileCount());
+            compareDirs(index, index.getDirectories());
+            log.log(Level.FINE, stats.toString());
+            fireSyncStatusEvent(false, stats);
         } catch (IOException | InterruptedException ex) {
             log.log(Level.SEVERE, ex.toString(), ex);
         }
@@ -246,8 +252,8 @@ public class SyncEngine implements Runnable {
      *
      * @param status
      */
-    private synchronized void fireSyncStatusEvent(boolean status, double percent) {
-        StatusEvent event = new StatusEvent(this, status, percent);
+    private synchronized void fireSyncStatusEvent(boolean status, SyncStats stats) {
+        StatusEvent event = new StatusEvent(this, status, stats);
         for (StatusListener listener : _statusListeners) {
             listener.statusUpdated(event);
         }

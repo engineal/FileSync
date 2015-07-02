@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  *
@@ -28,7 +29,7 @@ import java.util.Iterator;
  */
 public class SyncDirectory extends SyncFile implements Serializable, Collection<SyncFile> {
 
-    private final ArrayList<SyncFile> files;
+    private final List<SyncFile> files;
 
     public SyncDirectory(String name) {
         super(name);

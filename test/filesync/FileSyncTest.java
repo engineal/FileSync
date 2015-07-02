@@ -49,6 +49,19 @@ public class FileSyncTest {
     }
 
     /**
+     * Test of getInstance method, of class FileSync.
+     */
+    @Test
+    public void testGetInstance() {
+        System.out.println("getInstance");
+        FileSync expResult = null;
+        FileSync result = FileSync.getInstance();
+        assertEquals(expResult, result);
+        // TODO review the generated test code and remove the default call to fail.
+        fail("The test case is a prototype.");
+    }
+
+    /**
      * Test of main method, of class FileSync.
      */
     @Test
@@ -66,7 +79,7 @@ public class FileSyncTest {
     @Test
     public void testSync() {
         System.out.println("sync");
-        FileSync instance = new FileSync();
+        FileSync instance = null;
         instance.sync();
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
@@ -78,7 +91,7 @@ public class FileSyncTest {
     @Test
     public void testPauseSchedule() {
         System.out.println("pauseSchedule");
-        FileSync instance = new FileSync();
+        FileSync instance = null;
         instance.pauseSchedule();
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
@@ -91,7 +104,7 @@ public class FileSyncTest {
     public void testStatusUpdated() {
         System.out.println("statusUpdated");
         StatusEvent event = null;
-        FileSync instance = new FileSync();
+        FileSync instance = null;
         instance.statusUpdated(event);
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
@@ -104,7 +117,7 @@ public class FileSyncTest {
     public void testActionPerformed() {
         System.out.println("actionPerformed");
         UIEvent event = null;
-        FileSync instance = new FileSync();
+        FileSync instance = null;
         instance.actionPerformed(event);
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
