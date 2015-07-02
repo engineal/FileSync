@@ -82,7 +82,7 @@ public class SyncEngine implements Runnable {
     }
 
     private synchronized void compareDirs(SyncDirectory index, File dir1, File dir2) throws IOException, InterruptedException {
-        Queue<SyncFile> files = new LinkedList<>(index.getFiles());
+        Queue<SyncFile> files = new LinkedList<>(index);
         FileQueue dir1Files = new FileQueue(dir1.listFiles());
         FileQueue dir2Files = new FileQueue(dir2.listFiles());
 
@@ -102,7 +102,7 @@ public class SyncEngine implements Runnable {
                 if (file2 != null) {
                     removeFile(file2);
                 }
-                index.getFiles().remove(file);
+                index.remove(file);
                 processedCount++;
                 filesRemoved++;
                 log.log(Level.FINE, "{0} removed from database", file);
@@ -150,13 +150,13 @@ public class SyncEngine implements Runnable {
             if (file1.isDirectory()) {
                 SyncDirectory file = new SyncDirectory(file1.getName());
                 compareDirs((SyncDirectory) file, file1, file2);
-                index.getFiles().add(file);
+                index.add(file);
                 processedCount++;
                 filesAdded++;
                 log.log(Level.FINE, "{0} added to database", file);
             } else {
                 SyncFile file = new SyncFile(file1.getName());
-                index.getFiles().add(file);
+                index.add(file);
                 processedCount++;
                 filesAdded++;
                 log.log(Level.FINE, "{0} added to database", file);
@@ -176,12 +176,12 @@ public class SyncEngine implements Runnable {
             if (file2.isDirectory()) {
                 SyncDirectory file = new SyncDirectory(file2.getName());
                 compareDirs((SyncDirectory) file, file2, file2);
-                index.getFiles().add(file);
+                index.add(file);
                 processedCount++;
                 log.log(Level.FINE, "{0} added to database", file);
             } else {
                 SyncFile file = new SyncFile(file2.getName());
-                index.getFiles().add(file);
+                index.add(file);
                 processedCount++;
                 log.log(Level.FINE, "{0} added to database", file);
             }

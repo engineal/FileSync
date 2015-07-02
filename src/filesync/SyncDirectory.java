@@ -18,23 +18,21 @@ package filesync;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
  *
  * @author Aaron Lucia
  * @version Dec 17, 2014
  */
-public class SyncDirectory extends SyncFile implements Serializable {
+public class SyncDirectory extends SyncFile implements Serializable, Collection<SyncFile> {
 
     private final ArrayList<SyncFile> files;
 
     public SyncDirectory(String name) {
         super(name);
         files = new ArrayList<>();
-    }
-
-    public ArrayList<SyncFile> getFiles() {
-        return files;
     }
     
     public int fileCount() {
@@ -47,11 +45,74 @@ public class SyncDirectory extends SyncFile implements Serializable {
         }
         return count;
     }
-    
-    public boolean contains(String file) {
-        if (file != null) {
-            return files.stream().anyMatch((temp) -> (temp.getName().equals(file)));
+
+    @Override
+    public int size() {
+        return files.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return files.isEmpty();
+    }
+
+    @Override
+    public boolean contains(Object o) {
+        if (o instanceof String) {
+            return files.stream().anyMatch((temp) -> (temp.getName().equals(o)));
+        } else if (o instanceof SyncFile) {
+            return files.contains(o);
         }
         return false;
+    }
+
+    @Override
+    public Iterator<SyncFile> iterator() {
+        return files.iterator();
+    }
+
+    @Override
+    public Object[] toArray() {
+        return files.toArray();
+    }
+
+    @Override
+    public <T> T[] toArray(T[] a) {
+        return files.toArray(a);
+    }
+
+    @Override
+    public boolean add(SyncFile e) {
+        return files.add(e);
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        return files.remove(o);
+    }
+
+    @Override
+    public boolean containsAll(Collection<?> c) {
+        return files.containsAll(c);
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends SyncFile> c) {
+        return files.addAll(c);
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        return files.removeAll(c);
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+        return files.retainAll(c);
+    }
+
+    @Override
+    public void clear() {
+        files.clear();
     }
 }
