@@ -17,12 +17,9 @@
 package filesync.ui;
 
 import filesync.FileSync;
-import filesync.UIAction;
-import static filesync.UIAction.Pause;
-import static filesync.UIAction.Settings;
-import static filesync.UIAction.Sync;
-import filesync.UIEvent;
-import filesync.UIListener;
+import static filesync.ui.UIAction.Pause;
+import static filesync.ui.UIAction.Settings;
+import static filesync.ui.UIAction.Sync;
 import java.awt.AWTException;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;

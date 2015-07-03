@@ -20,6 +20,8 @@ import filesync.engine.SyncEngine;
 import filesync.ui.Console;
 import filesync.ui.FileSyncSystemTray;
 import filesync.ui.FileSyncUI;
+import filesync.ui.UIEvent;
+import filesync.ui.UIListener;
 import java.awt.AWTException;
 import java.io.File;
 import java.io.FileInputStream;

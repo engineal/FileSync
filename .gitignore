@@ -1,0 +1,8 @@
+/build
+/Dir1
+/Dir2
+/nbproject
+build.xml
+Index.ser
+log.*
+manifest.mf

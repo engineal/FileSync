@@ -27,6 +27,7 @@ public class SyncFile implements Serializable {
 
     private final String name;
     private int size;
+    private int lastModified;
 
     public SyncFile(String name) {
         this.name = name;
@@ -57,5 +58,13 @@ public class SyncFile implements Serializable {
      */
     public void setSize(int size) {
         this.size = size;
+    }
+
+    public int getLastModified() {
+        return lastModified;
+    }
+
+    public void setLastModified(int lastModified) {
+        this.lastModified = lastModified;
     }
 }

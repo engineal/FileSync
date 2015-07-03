@@ -14,16 +14,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package filesync;
-
-import java.util.EventListener;
+package filesync.engine;
 
 /**
  *
  * @author Aaron Lucia
- * @version Dec 19, 2014
+ * @version Jul 2, 2015
  */
-public interface UIListener extends EventListener {
+public enum SyncAction {
 
-    public void actionPerformed(UIEvent event);
+    Added,
+    Removed,
+    Modified,
+    Unchanged
 }

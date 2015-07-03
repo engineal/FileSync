@@ -14,25 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package filesync.ui;
 
-package filesync;
-
-import java.util.EventObject;
+import java.util.EventListener;
 
 /**
  *
  * @author Aaron Lucia
  * @version Dec 19, 2014
  */
-public class UIEvent extends EventObject {
-    private final UIAction action;
+public interface UIListener extends EventListener {
 
-    public UIEvent(Object source, UIAction action) {
-        super(source);
-        this.action = action;
-    }
-
-    public UIAction getAction() {
-        return action;
-    }
+    public void actionPerformed(UIEvent event);
 }

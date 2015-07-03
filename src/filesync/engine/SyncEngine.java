@@ -36,6 +36,7 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -90,104 +91,63 @@ public class SyncEngine implements Runnable {
         }
     }
 
-    private synchronized void compareDirs(SyncDirectory index, List directories) throws IOException, InterruptedException {
-        Queue<SyncFile> files = new LinkedList<>(index);
-        Queue<File> dir1Files = new LinkedList<File>(dir1.listFiles());
-        Queue<File> dir2Files = new LinkedList<File>(dir2.listFiles());
+    private synchronized void compareDirs(SyncDirectory directory, List<Path> directories) throws IOException, InterruptedException {
+        Queue<SyncFile> syncFiles = new LinkedList<>(directory);
+        List<List<File>> actualFiles = new ArrayList<>();
 
-        while (!files.isEmpty()) {
-            fireSyncStatusEvent(true, stats);
-            if (paused) {
-                wait();
-            }
-            SyncFile file = files.remove();
-            File file1 = dir1Files.remove(file.getName());
-            File file2 = dir2Files.remove(file.getName());
-
-            if (file1 == null || file2 == null) {
-                if (file1 != null) {
-                    removeFile(file1);
-                }
-                if (file2 != null) {
-                    removeFile(file2);
-                }
-                index.remove(file);
-                stats.increaseFilesRemoved();
-                log.log(Level.FINE, "{0} removed from database", file);
-            } else if (file1.lastModified() != file2.lastModified() || file1.length() != file2.length()) {
-                if (file1.lastModified() > file2.lastModified()) {
-                    copyFile(file1, dir2);
-                } else {
-                    copyFile(file2, dir1);
-                }
-                stats.increaseFilesModified();
-                log.log(Level.FINE, "{0} modified", file);
-            } else {
-                stats.increaseFilesUnmodified();
-                log.log(Level.FINE, "{0} unmodified", file);
-            }
-            stats.increaseProcessedCount();
-
-            if (file1 != null && file2 != null && file instanceof SyncDirectory) {
-                compareDirs((SyncDirectory) file, file1, file2);
-            }
+        for (Path dir : directories) {
+            List<File> fileList = new ArrayList<>();
+            fileList.addAll(Arrays.asList(dir.toFile().listFiles()));
+            actualFiles.add(fileList);
         }
 
-        stats.increaseFileCount(dir1Files.size());
-        while (!dir1Files.isEmpty()) {
+        while (!syncFiles.isEmpty()) {
             fireSyncStatusEvent(true, stats);
             if (paused) {
                 wait();
             }
-            File file1 = dir1Files.remove();
-            File file2 = dir2Files.remove(file1.getName());
-
-            if (file2 != null) {
-                if (file1.lastModified() != file2.lastModified() || file1.length() != file2.length()) {
-                    if (file1.lastModified() > file2.lastModified()) {
-                        copyFile(file1, dir2);
-                    } else {
-                        copyFile(file2, dir1);
+            
+            SyncFile syncFile = syncFiles.remove();
+            List<File> actualFile = new ArrayList<>();
+            List<SyncAction> actions = new ArrayList<>();
+            
+            for (List<File> files : actualFiles) {
+                boolean found = false;
+                for (File file : files) {
+                    if (file.getName().equals(syncFile.getName())) {
+                        found = true;
+                        files.remove(file);
+                        actualFile.add(file);
+                        break;
                     }
                 }
-            } else {
-                copyFile(file1, dir2);
+                
+                if (!found) {
+                    actualFile.add(new File(syncFile.getName() + ".missing"));
+                }
             }
-
-            SyncFile file;
-            if (file1.isDirectory()) {
-                file = new SyncDirectory(file1.getName());
-                compareDirs((SyncDirectory) file, file1, file2);
-            } else {
-                file = new SyncFile(file1.getName());
+            
+            for (File file : actualFile) {
+                if (file.getName().endsWith(".missing")) {
+                    actions.add(SyncAction.Removed);
+                } else if (file.lastModified() != syncFile.getLastModified()) {
+                    actions.add(SyncAction.Modified);
+                } else if (file.length() != syncFile.getSize()) {
+                    actions.add(SyncAction.Modified);
+                } else {
+                    actions.add(SyncAction.Unchanged);
+                }
             }
-            index.add(file);
-            stats.increaseProcessedCount();
-            stats.increaseFilesAdded();
-            log.log(Level.FINE, "{0} added to database", file);
-        }
-
-        stats.increaseFileCount(dir2Files.size());
-        while (!dir2Files.isEmpty()) {
-            fireSyncStatusEvent(true, stats);
-            if (paused) {
-                wait();
+            
+            if (actions.contains(SyncAction.Removed)) {
+                directory.remove(syncFile);
+                log.log(Level.FINE, "{0} removed from database", syncFile);
+                for (File file : actualFile) {
+                    removeFile(file);
+                }
+            } else if (actions.contains(SyncAction.Modified)) {
+                
             }
-            File file2 = dir2Files.remove();
-
-            copyFile(file2, dir1);
-
-            SyncFile file;
-            if (file2.isDirectory()) {
-                file = new SyncDirectory(file2.getName());
-                compareDirs((SyncDirectory) file, file2, file2);
-            } else {
-                file = new SyncFile(file2.getName());
-            }
-            index.add(file);
-            stats.increaseProcessedCount();
-            stats.increaseFilesAdded();
-            log.log(Level.FINE, "{0} added to database", file);
         }
     }
 

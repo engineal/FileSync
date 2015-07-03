@@ -16,10 +16,7 @@
  */
 package filesync.ui;
 
-import filesync.UIAction;
-import static filesync.UIAction.Sync;
-import filesync.UIEvent;
-import filesync.UIListener;
+import static filesync.ui.UIAction.Sync;
 import java.util.ArrayList;
 import java.util.List;
 

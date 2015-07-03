@@ -18,11 +18,8 @@ package filesync.ui;
 
 import filesync.FileSync;
 import filesync.SyncIndex;
-import filesync.UIAction;
-import static filesync.UIAction.Pause;
-import static filesync.UIAction.Sync;
-import filesync.UIEvent;
-import filesync.UIListener;
+import static filesync.ui.UIAction.Pause;
+import static filesync.ui.UIAction.Sync;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.io.File;
