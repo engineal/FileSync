@@ -26,45 +26,66 @@ import java.io.Serializable;
 public class SyncFile implements Serializable {
 
     private final String name;
-    private int size;
-    private int lastModified;
+    private long size;
+    private long lastModified;
 
     public SyncFile(String name) {
         this.name = name;
     }
+    
+    public SyncFile(String name, long size, long lastModified) {
+        this.name = name;
+        this.size = size;
+        this.lastModified = lastModified;
+    }
 
+    /**
+     * Get the name of the file
+     *
+     * @return the value of name
+     */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Get the size of the file
+     *
+     * @return the value of size
+     */
+    public long getSize() {
+        return size;
+    }
+
+    /**
+     * Set the size of the file
+     *
+     * @param size new value of size
+     */
+    public void setSize(long size) {
+        this.size = size;
+    }
+
+    /**
+     * Get the last modified time of the file
+     *
+     * @return the value of lastModified
+     */
+    public long getLastModified() {
+        return lastModified;
+    }
+
+    /**
+     * Set the last modified time of the file
+     *
+     * @param lastModified new value of lastModified
+     */
+    public void setLastModified(long lastModified) {
+        this.lastModified = lastModified;
     }
     
     @Override
     public String toString() {
         return name;
-    }
-
-    /**
-     * Get the value of size
-     *
-     * @return the value of size
-     */
-    public int getSize() {
-        return size;
-    }
-
-    /**
-     * Set the value of size
-     *
-     * @param size new value of size
-     */
-    public void setSize(int size) {
-        this.size = size;
-    }
-
-    public int getLastModified() {
-        return lastModified;
-    }
-
-    public void setLastModified(int lastModified) {
-        this.lastModified = lastModified;
     }
 }

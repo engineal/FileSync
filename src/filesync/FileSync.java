@@ -42,6 +42,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 /**
  *
  * @author Aaron Lucia
+ * @version Dec 16, 2014
  */
 public class FileSync implements StatusListener, UIListener {
 
@@ -90,7 +91,6 @@ public class FileSync implements StatusListener, UIListener {
         }
     }
 
-
     private FileSyncUI settings;
     private FileSyncSystemTray tray;
     private SyncEngine syncEngine;
@@ -120,7 +120,7 @@ public class FileSync implements StatusListener, UIListener {
             } catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
                 log.log(Level.SEVERE, ex.toString(), ex);
             }
-            
+
             java.awt.EventQueue.invokeLater(() -> {
                 try {
                     tray = new FileSyncSystemTray();
@@ -132,21 +132,6 @@ public class FileSync implements StatusListener, UIListener {
                 }
             });
         }
-    }
-
-    public void sync() {
-        if (syncEngine == null) {
-            syncEngine = new SyncEngine(loadSyncIndex("Index.ser"));
-            syncEngine.addStatusListener(this);
-            syncEngine.start();
-        } else {
-            syncEngine.pause();
-        }
-    }
-
-    public void pauseSchedule() {
-        settings.updatePauseStatus(true);
-        settings.updatePauseStatus(false);
     }
 
     @Override
@@ -173,5 +158,24 @@ public class FileSync implements StatusListener, UIListener {
                 pauseSchedule();
                 break;
         }
+    }
+
+    public synchronized void sync() {
+        if (syncEngine == null) {
+            syncEngine = new SyncEngine(loadSyncIndex("Index.ser"));
+            syncEngine.addStatusListener(this);
+            syncEngine.start();
+        } else {
+            if (syncEngine.isRunning()) {
+                syncEngine.pauseSync();
+            } else {
+                syncEngine.resumeSync();
+            }
+        }
+    }
+
+    public void pauseSchedule() {
+        settings.updatePauseStatus(true);
+        settings.updatePauseStatus(false);
     }
 }

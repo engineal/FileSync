@@ -25,11 +25,7 @@ import filesync.SyncIndex;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
@@ -48,33 +44,19 @@ import java.util.logging.Logger;
  * @author Aaron Lucia
  * @version Dec 16, 2014
  */
-public class SyncEngine implements Runnable {
+public class SyncEngine extends Thread {
 
     private static final Logger log = Logger.getLogger(FileSync.class.getName());
 
-    private static void copyFile(File file, File directory) throws IOException {
-        Path source = Paths.get(file.getAbsolutePath());
-        Path destination = Paths.get(directory.getAbsolutePath() + "\\" + file.getName());
-        log.log(Level.FINE, "Copying {0} to {1}", new Object[]{source, destination});
-        Files.copy(source, destination, REPLACE_EXISTING, COPY_ATTRIBUTES);
-    }
-
-    private static void removeFile(File file) throws IOException {
-        Path source = Paths.get(file.getAbsolutePath());
-        log.log(Level.FINE, "Removing {0}", source);
-        Files.delete(source);
-    }
-
     private final SyncIndex index;
+    private boolean running;
+    private boolean stop;
     private SyncStats stats;
-    private boolean paused;
-    private final Thread thread;
     private final List<StatusListener> _statusListeners;
 
     public SyncEngine(SyncIndex index) {
+        super("FileSync Engine");
         this.index = index;
-        paused = false;
-        thread = new Thread(this, "FileSync Engine");
         _statusListeners = new ArrayList<>();
 
         try {
@@ -93,60 +75,61 @@ public class SyncEngine implements Runnable {
 
     private synchronized void compareDirs(SyncDirectory directory, List<Path> directories) throws IOException, InterruptedException {
         Queue<SyncFile> syncFiles = new LinkedList<>(directory);
-        List<List<File>> actualFiles = new ArrayList<>();
+        List<File>[] actualFiles = new List[directories.size()];
 
-        for (Path dir : directories) {
+        for (int i = 0; i < directories.size(); i++) {
             List<File> fileList = new ArrayList<>();
-            fileList.addAll(Arrays.asList(dir.toFile().listFiles()));
-            actualFiles.add(fileList);
+            fileList.addAll(Arrays.asList(directories.get(i).toFile().listFiles()));
+            actualFiles[i] = fileList;
         }
 
+        // Process all known files
         while (!syncFiles.isEmpty()) {
-            fireSyncStatusEvent(true, stats);
-            if (paused) {
+            if (stop) {
+                return;
+            }
+
+            while (!running) {
                 wait();
             }
-            
+
+            fireSyncStatusEvent(true, stats);
+
             SyncFile syncFile = syncFiles.remove();
-            List<File> actualFile = new ArrayList<>();
-            List<SyncAction> actions = new ArrayList<>();
-            
-            for (List<File> files : actualFiles) {
-                boolean found = false;
-                for (File file : files) {
+            File[] files = new File[directories.size()];
+
+            for (int i = 0; i < actualFiles.length; i++) {
+                List<File> fileList = actualFiles[i];
+                for (File file : fileList) {
                     if (file.getName().equals(syncFile.getName())) {
-                        found = true;
-                        files.remove(file);
-                        actualFile.add(file);
+                        fileList.remove(file);
+                        files[i] = file;
                         break;
                     }
                 }
-                
-                if (!found) {
-                    actualFile.add(new File(syncFile.getName() + ".missing"));
-                }
             }
-            
-            for (File file : actualFile) {
-                if (file.getName().endsWith(".missing")) {
-                    actions.add(SyncAction.Removed);
-                } else if (file.lastModified() != syncFile.getLastModified()) {
-                    actions.add(SyncAction.Modified);
-                } else if (file.length() != syncFile.getSize()) {
-                    actions.add(SyncAction.Modified);
-                } else {
-                    actions.add(SyncAction.Unchanged);
-                }
-            }
-            
-            if (actions.contains(SyncAction.Removed)) {
+
+            FileCompare comparer = new FileCompare(syncFile, files);
+            if (comparer.resolveConflict() == SyncAction.Removed) {
                 directory.remove(syncFile);
                 log.log(Level.FINE, "{0} removed from database", syncFile);
-                for (File file : actualFile) {
-                    removeFile(file);
-                }
-            } else if (actions.contains(SyncAction.Modified)) {
-                
+            }
+        }
+
+        // Process all new files
+        for (int i = 0; i < actualFiles.length; i++) {
+            if (stop) {
+                return;
+            }
+
+            while (!running) {
+                wait();
+            }
+
+            List<File> fileList = actualFiles[i];
+            for (File file : fileList) {
+                FileCompare comparer = new FileCompare(file);
+                comparer.resolveConflict();
             }
         }
     }
@@ -154,6 +137,8 @@ public class SyncEngine implements Runnable {
     @Override
     public void run() {
         try {
+            running = true;
+            stop = false;
             stats = new SyncStats(index.fileCount());
             compareDirs(index, index.getDirectories());
             log.log(Level.FINE, stats.toString());
@@ -163,31 +148,25 @@ public class SyncEngine implements Runnable {
         }
     }
 
-    public synchronized boolean start() {
-        if (!thread.isAlive()) {
-            thread.start();
-            return true;
-        }
-        return false;
-    }
-
-    public synchronized void pause() {
-        if (thread.isAlive()) {
-            if (!paused) {
-                paused = true;
-            } else {
-                paused = false;
-                this.notify();
-            }
-        }
-    }
-
-    public synchronized boolean isPaused() {
-        return paused;
-    }
-
     public SyncIndex getIndex() {
         return index;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public void pauseSync() {
+        running = false;
+    }
+
+    public synchronized void resumeSync() {
+        running = true;
+        notify();
+    }
+
+    public void stopSync() {
+        stop = true;
     }
 
     /**
