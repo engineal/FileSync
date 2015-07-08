@@ -1,8 +1,6 @@
 /build
-/Dir1
-/Dir2
+/Data
+/Sample
 /nbproject
-build.xml
-Index.ser
 log.*
 manifest.mf

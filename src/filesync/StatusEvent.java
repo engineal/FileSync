@@ -28,11 +28,13 @@ public class StatusEvent extends EventObject {
 
     private final boolean syncing;
     private final SyncStats stats;
+    private final SyncIndex index;
 
-    public StatusEvent(Object source, boolean syncing, SyncStats stats) {
+    public StatusEvent(Object source, boolean syncing, SyncStats stats, SyncIndex index) {
         super(source);
         this.syncing = syncing;
         this.stats = stats;
+        this.index = index;
     }
 
     public boolean isSyncing() {
@@ -41,6 +43,10 @@ public class StatusEvent extends EventObject {
     
     public SyncStats getStats() {
         return stats;
+    }
+    
+    public SyncIndex getIndex() {
+        return index;
     }
 
     public double getPercent() {

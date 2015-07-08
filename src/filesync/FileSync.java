@@ -24,12 +24,7 @@ import filesync.ui.UIEvent;
 import filesync.ui.UIListener;
 import java.awt.AWTException;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
@@ -65,35 +60,9 @@ public class FileSync implements StatusListener, UIListener {
         sync.processArgs(args);
     }
 
-    private static SyncIndex loadSyncIndex(String file) {
-        if (new File(file).exists()) {
-            try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
-                log.log(Level.FINE, "Opening {0}", file);
-                return (SyncIndex) in.readObject();
-            } catch (IOException | ClassNotFoundException ex) {
-                log.log(Level.SEVERE, ex.toString(), ex);
-            }
-        }
-        log.log(Level.FINE, "Could not open {0}, creating default instead.", file);
-
-        List<Path> directories = new ArrayList<>();
-        directories.add(new File("Dir1").toPath());
-        directories.add(new File("Dir2").toPath());
-        return new SyncIndex("Sync", directories);
-    }
-
-    private static void saveSyncIndex(String file, SyncIndex index) {
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
-            log.log(Level.FINE, "Saving {0}", index);
-            out.writeObject(index);
-        } catch (IOException ex) {
-            log.log(Level.SEVERE, ex.toString(), ex);
-        }
-    }
-
     private FileSyncUI settings;
     private FileSyncSystemTray tray;
-    private SyncEngine syncEngine;
+    private List<SyncEngine> syncEngines;
 
     private FileSync() {
         try {
@@ -107,7 +76,20 @@ public class FileSync implements StatusListener, UIListener {
             log.addHandler(ch);
             log.setLevel(Level.ALL);
         } catch (IOException | SecurityException ex) {
-            log.log(Level.SEVERE, ex.toString(), ex);
+            log.log(Level.SEVERE, ex.getMessage(), ex);
+        }
+
+        syncEngines = new ArrayList<>();
+        File dataDir = new File("Data");
+        for (File file : dataDir.listFiles()) {
+            try {
+                SyncEngine syncEngine = new SyncEngine(SaveSyncIndex.load(file));
+                log.log(Level.SEVERE, "Loaded {0}", syncEngine.getIndex());
+                syncEngine.addStatusListener(this);
+                syncEngines.add(syncEngine);
+            } catch (IOException | ClassNotFoundException ex) {
+                log.log(Level.SEVERE, ex.getMessage(), ex);
+            }
         }
     }
 
@@ -118,7 +100,7 @@ public class FileSync implements StatusListener, UIListener {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
-                log.log(Level.SEVERE, ex.toString(), ex);
+                log.log(Level.SEVERE, ex.getMessage(), ex);
             }
 
             java.awt.EventQueue.invokeLater(() -> {
@@ -128,7 +110,7 @@ public class FileSync implements StatusListener, UIListener {
                     settings = new FileSyncUI();
                     settings.addUIListener(this);
                 } catch (AWTException ex) {
-                    log.log(Level.SEVERE, ex.toString(), ex);
+                    log.log(Level.SEVERE, ex.getMessage(), ex);
                 }
             });
         }
@@ -137,8 +119,12 @@ public class FileSync implements StatusListener, UIListener {
     @Override
     public void statusUpdated(StatusEvent event) {
         if (!event.isSyncing()) {
-            saveSyncIndex("Index.ser", syncEngine.getIndex());
-            syncEngine = null;
+            try {
+                SaveSyncIndex.save(new File("Data\\Index.json"), event.getIndex());
+                log.log(Level.SEVERE, "Saved {0}", event.getIndex());
+            } catch (IOException ex) {
+                log.log(Level.SEVERE, ex.getMessage(), ex);
+            }
         }
         if (settings != null) {
             settings.updateSyncStatus(event.isSyncing(), event.getPercent());
@@ -161,11 +147,9 @@ public class FileSync implements StatusListener, UIListener {
     }
 
     public synchronized void sync() {
-        if (syncEngine == null) {
-            syncEngine = new SyncEngine(loadSyncIndex("Index.ser"));
-            syncEngine.addStatusListener(this);
+        for (SyncEngine syncEngine : syncEngines) {
             syncEngine.start();
-        } else {
+
             if (syncEngine.isRunning()) {
                 syncEngine.pauseSync();
             } else {

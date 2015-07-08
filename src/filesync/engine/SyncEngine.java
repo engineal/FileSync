@@ -57,6 +57,9 @@ public class SyncEngine extends Thread {
     public SyncEngine(SyncIndex index) {
         super("FileSync Engine");
         this.index = index;
+        this.running = false;
+        this.stop = true;
+        
         _statusListeners = new ArrayList<>();
 
         try {
@@ -69,7 +72,7 @@ public class SyncEngine extends Thread {
                         ENTRY_MODIFY);
             }
         } catch (IOException ex) {
-            log.log(Level.SEVERE, null, ex);
+            log.log(Level.SEVERE, ex.getMessage(), ex);
         }
     }
 
@@ -144,7 +147,7 @@ public class SyncEngine extends Thread {
             log.log(Level.FINE, stats.toString());
             fireSyncStatusEvent(false, stats);
         } catch (IOException | InterruptedException ex) {
-            log.log(Level.SEVERE, ex.toString(), ex);
+            log.log(Level.SEVERE, ex.getMessage(), ex);
         }
     }
 
@@ -192,7 +195,7 @@ public class SyncEngine extends Thread {
      * @param status
      */
     private synchronized void fireSyncStatusEvent(boolean status, SyncStats stats) {
-        StatusEvent event = new StatusEvent(this, status, stats);
+        StatusEvent event = new StatusEvent(this, status, stats, index);
         for (StatusListener listener : _statusListeners) {
             listener.statusUpdated(event);
         }
