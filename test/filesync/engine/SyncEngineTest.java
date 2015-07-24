@@ -14,9 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package filesync;
+package filesync.engine;
 
-import filesync.engine.SyncEngine;
+import filesync.StatusListener;
+import filesync.SyncIndex;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -62,46 +63,6 @@ public class SyncEngineTest {
     }
 
     /**
-     * Test of start method, of class SyncEngine.
-     */
-    @Test
-    public void testStart() {
-        System.out.println("start");
-        SyncEngine instance = null;
-        boolean expResult = false;
-        boolean result = instance.start();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of pause method, of class SyncEngine.
-     */
-    @Test
-    public void testPause() {
-        System.out.println("pause");
-        SyncEngine instance = null;
-        instance.pause();
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of isPaused method, of class SyncEngine.
-     */
-    @Test
-    public void testIsPaused() {
-        System.out.println("isPaused");
-        SyncEngine instance = null;
-        boolean expResult = false;
-        boolean result = instance.isPaused();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
      * Test of getIndex method, of class SyncEngine.
      */
     @Test
@@ -111,6 +72,56 @@ public class SyncEngineTest {
         SyncIndex expResult = null;
         SyncIndex result = instance.getIndex();
         assertEquals(expResult, result);
+        // TODO review the generated test code and remove the default call to fail.
+        fail("The test case is a prototype.");
+    }
+
+    /**
+     * Test of isRunning method, of class SyncEngine.
+     */
+    @Test
+    public void testIsRunning() {
+        System.out.println("isRunning");
+        SyncEngine instance = null;
+        boolean expResult = false;
+        boolean result = instance.isRunning();
+        assertEquals(expResult, result);
+        // TODO review the generated test code and remove the default call to fail.
+        fail("The test case is a prototype.");
+    }
+
+    /**
+     * Test of pauseSync method, of class SyncEngine.
+     */
+    @Test
+    public void testPauseSync() {
+        System.out.println("pauseSync");
+        SyncEngine instance = null;
+        instance.pauseSync();
+        // TODO review the generated test code and remove the default call to fail.
+        fail("The test case is a prototype.");
+    }
+
+    /**
+     * Test of resumeSync method, of class SyncEngine.
+     */
+    @Test
+    public void testResumeSync() {
+        System.out.println("resumeSync");
+        SyncEngine instance = null;
+        instance.resumeSync();
+        // TODO review the generated test code and remove the default call to fail.
+        fail("The test case is a prototype.");
+    }
+
+    /**
+     * Test of stopSync method, of class SyncEngine.
+     */
+    @Test
+    public void testStopSync() {
+        System.out.println("stopSync");
+        SyncEngine instance = null;
+        instance.stopSync();
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }

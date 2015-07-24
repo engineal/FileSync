@@ -28,7 +28,7 @@ import org.junit.runners.Suite;
  * @author Aaron Lucia
  */
 @RunWith(Suite.class)
-@Suite.SuiteClasses({filesync.SyncEngineTest.class, filesync.FileSyncTest.class})
+@Suite.SuiteClasses({filesync.engine.SyncEngineTest.class, filesync.FileSyncTest.class})
 public class SyncTestSuite {
 
     @BeforeClass

@@ -75,30 +75,6 @@ public class FileSyncTest {
     }
 
     /**
-     * Test of sync method, of class FileSync.
-     */
-    @Test
-    public void testSync() {
-        System.out.println("sync");
-        FileSync instance = null;
-        instance.sync();
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of pauseSchedule method, of class FileSync.
-     */
-    @Test
-    public void testPauseSchedule() {
-        System.out.println("pauseSchedule");
-        FileSync instance = null;
-        instance.pauseSchedule();
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
      * Test of statusUpdated method, of class FileSync.
      */
     @Test
@@ -120,6 +96,18 @@ public class FileSyncTest {
         UIEvent event = null;
         FileSync instance = null;
         instance.actionPerformed(event);
+        // TODO review the generated test code and remove the default call to fail.
+        fail("The test case is a prototype.");
+    }
+
+    /**
+     * Test of sync method, of class FileSync.
+     */
+    @Test
+    public void testSync() {
+        System.out.println("sync");
+        FileSync instance = null;
+        instance.sync();
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
