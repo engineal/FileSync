@@ -41,6 +41,8 @@ import javax.swing.JPopupMenu;
 public class FileSyncSystemTray implements ActionListener {
 
     private final List<UIListener> _uiListeners;
+    private final TrayIcon trayIcon;
+    private final SystemTray tray;
 
     private final JPopupMenu popup;
     private final JMenuItem settingsItem;
@@ -48,11 +50,12 @@ public class FileSyncSystemTray implements ActionListener {
     private final JMenuItem pauseItem;
     private final JMenuItem exitItem;
 
-    public FileSyncSystemTray() throws AWTException {
+    public FileSyncSystemTray() {
         _uiListeners = new ArrayList<>();
-        ImageIcon icon = new ImageIcon(FileSync.class.getResource("images/bulb.gif"), "FileSync");
-        TrayIcon trayIcon = new TrayIcon(icon.getImage());
-        SystemTray tray = SystemTray.getSystemTray();
+        ImageIcon icon = new ImageIcon(FileSync.class.getResource("ui/images/bulb.gif"), "FileSync");
+        trayIcon = new TrayIcon(icon.getImage());
+        trayIcon.setImageAutoSize(true);
+        tray = SystemTray.getSystemTray();
 
         popup = new JPopupMenu();
         settingsItem = new JMenuItem("Settings");
@@ -84,7 +87,14 @@ public class FileSyncSystemTray implements ActionListener {
             }
         });
 
-        tray.add(trayIcon);
+    }
+
+    public void setVisible(boolean visible) throws AWTException {
+        if (visible) {
+            tray.add(trayIcon);
+        } else {
+            tray.remove(trayIcon);
+        }
     }
 
     @Override

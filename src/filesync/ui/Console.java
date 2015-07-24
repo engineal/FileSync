@@ -16,7 +16,6 @@
  */
 package filesync.ui;
 
-import static filesync.ui.UIAction.Sync;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,29 +27,42 @@ import java.util.List;
 public class Console {
 
     private final List<UIListener> _uiListeners;
-    private boolean gui;
+    private boolean tray;
+    private boolean settings;
+    private boolean sync;
 
     public Console(String[] args) {
         _uiListeners = new ArrayList<>();
-        gui = args.length == 0;
+        tray = args.length == 0;
+        settings = false;
+        sync = false;
 
         for (String arg : args) {
             switch (arg) {
-                case "no-gui":
-                    gui = false;
+                case "tray":
+                    tray = true;
                     break;
-                case "gui":
-                    gui = true;
+                case "settings":
+                    tray = true;
+                    settings = true;
                     break;
                 case "sync":
-                    fireUIEvent(Sync);
+                    sync = true;
                     break;
             }
         }
     }
 
-    public boolean isGui() {
-        return gui;
+    public boolean isTray() {
+        return tray;
+    }
+    
+    public boolean isSettings() {
+        return settings;
+    }
+    
+    public boolean isSync() {
+        return settings;
     }
 
     /**

@@ -1,5 +1,6 @@
-/build
-/Data
-/Sample
-log.*
+/build/
+/Data/
 /dist/
+/nbproject/private/
+/Sample/
+log.*

@@ -16,10 +16,11 @@
  */
 package filesync;
 
+import filesync.io.SaveSyncIndex;
 import filesync.engine.SyncEngine;
 import filesync.ui.Console;
 import filesync.ui.FileSyncSystemTray;
-import filesync.ui.FileSyncUI;
+import filesync.ui.SettingsUI;
 import filesync.ui.UIEvent;
 import filesync.ui.UIListener;
 import java.awt.AWTException;
@@ -35,13 +36,15 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 /**
+ * Main class of File Sync, contains main method and logic to represent a single
+ * instance of the application
  *
  * @author Aaron Lucia
  * @version Dec 16, 2014
  */
 public class FileSync implements StatusListener, UIListener {
 
-    public static final String VERSION = "0.0.3";
+    public static final String VERSION = "1.0.DEV";
     private static final Logger log = Logger.getLogger(FileSync.class.getName());
     private static FileSync instance;
 
@@ -56,12 +59,16 @@ public class FileSync implements StatusListener, UIListener {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+            log.log(Level.SEVERE, ex.getMessage(), ex);
+        }
+
         FileSync sync = getInstance();
         sync.processArgs(args);
     }
 
-    private FileSyncSystemTray tray;
-    private List<SyncEngine> syncEngines;
     private List<SyncIndex> syncIndexes;
 
     private FileSync() {
@@ -70,26 +77,24 @@ public class FileSync implements StatusListener, UIListener {
             fh.setFormatter(new LogFormatter());
             fh.setLevel(Level.ALL);
             log.addHandler(fh);
+
             ConsoleHandler ch = new ConsoleHandler();
             ch.setFormatter(new LogFormatter());
             ch.setLevel(Level.ALL);
             log.addHandler(ch);
+
             log.setLevel(Level.ALL);
         } catch (IOException | SecurityException ex) {
             log.log(Level.SEVERE, ex.getMessage(), ex);
         }
 
-        syncEngines = new ArrayList<>();
         syncIndexes = new ArrayList<>();
         File dataDir = new File("Data");
         for (File file : dataDir.listFiles()) {
             try {
                 SyncIndex index = SaveSyncIndex.load(file);
                 syncIndexes.add(index);
-                SyncEngine syncEngine = new SyncEngine(index);
-                log.log(Level.SEVERE, "Loaded {0}", syncEngine.getIndex());
-                syncEngine.addStatusListener(this);
-                syncEngines.add(syncEngine);
+                log.log(Level.SEVERE, "Loaded {0}", index);
             } catch (IOException | ClassNotFoundException ex) {
                 log.log(Level.SEVERE, ex.getMessage(), ex);
             }
@@ -99,20 +104,24 @@ public class FileSync implements StatusListener, UIListener {
     private void processArgs(String[] args) {
         Console console = new Console(args);
         console.addUIListener(this);
-        if (console.isGui()) {
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
-                log.log(Level.SEVERE, ex.getMessage(), ex);
-            }
 
+        if (console.isTray()) {
             java.awt.EventQueue.invokeLater(() -> {
                 try {
-                    tray = new FileSyncSystemTray();
+                    FileSyncSystemTray tray = new FileSyncSystemTray();
                     tray.addUIListener(this);
+                    tray.setVisible(true);
                 } catch (AWTException ex) {
                     log.log(Level.SEVERE, ex.getMessage(), ex);
                 }
+            });
+        }
+
+        if (console.isSettings()) {
+            java.awt.EventQueue.invokeLater(() -> {
+                SettingsUI settings = new SettingsUI(syncIndexes);
+                settings.addUIListener(this);
+                settings.setVisible(true);
             });
         }
     }
@@ -133,7 +142,9 @@ public class FileSync implements StatusListener, UIListener {
     public void actionPerformed(UIEvent event) {
         switch (event.getAction()) {
             case Settings:
-                new FileSyncUI(syncIndexes).setVisible(true);
+                SettingsUI settings = new SettingsUI(syncIndexes);
+                settings.addUIListener(this);
+                settings.setVisible(true);
                 break;
             case Sync:
                 sync();
@@ -144,14 +155,8 @@ public class FileSync implements StatusListener, UIListener {
     }
 
     public synchronized void sync() {
-        for (SyncEngine syncEngine : syncEngines) {
-            syncEngine.start();
-
-            if (syncEngine.isRunning()) {
-                syncEngine.pauseSync();
-            } else {
-                syncEngine.resumeSync();
-            }
+        for (SyncIndex index : syncIndexes) {
+            index.getSyncEngine().start();
         }
     }
 }

@@ -16,7 +16,6 @@
  */
 package filesync;
 
-import filesync.engine.SyncStats;
 import java.util.EventObject;
 
 /**

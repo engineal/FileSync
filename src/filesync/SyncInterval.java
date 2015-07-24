@@ -16,46 +16,33 @@
  */
 package filesync;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
-
 /**
  *
  * @author Aaron Lucia
+ * @version Jul 23, 2015
  */
-public class FileSyncTest {
+public enum SyncInterval {
+
+    MINUTE("Minute", 60),
+    HOUR("Hour", 60 * 60),
+    DAY("Day", 60 * 60 * 24),
+    WEEK("Day", 60 * 60 * 24 * 7),
+    MONTH("Month", 60 * 60 * 24 * 30),
+    YEAR("Year", 60 * 60 * 24 * 30 * 365);
     
-    public FileSyncTest() {
-    }
+    private final String displayText;
+    private final int delayM;
     
-    @BeforeClass
-    public static void setUpClass() {
-    }
-    
-    @AfterClass
-    public static void tearDownClass() {
-    }
-    
-    @Before
-    public void setUp() {
-    }
-    
-    @After
-    public void tearDown() {
+    private SyncInterval(String displayText, int delayM) {
+        this.displayText = displayText;
+        this.delayM = delayM;
     }
 
-    /**
-     * Test of getInstance method, of class FileSync.
-     */
-    @Test
-    public void testGetInstance() {
-        System.out.println("getInstance");
-        FileSync expResult = FileSync.getInstance();
-        FileSync result = FileSync.getInstance();
-        assertEquals(expResult, result);
+    public String getDisplayText() {
+        return displayText;
+    }
+
+    public int getDelayM() {
+        return delayM;
     }
 }

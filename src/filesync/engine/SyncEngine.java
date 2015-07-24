@@ -16,6 +16,7 @@
  */
 package filesync.engine;
 
+import filesync.SyncStats;
 import filesync.FileSync;
 import filesync.StatusEvent;
 import filesync.StatusListener;

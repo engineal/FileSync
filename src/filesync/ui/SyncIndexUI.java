@@ -17,19 +17,23 @@
 package filesync.ui;
 
 import filesync.SyncIndex;
+import filesync.SyncInterval;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.nio.file.Path;
+import javax.swing.ButtonModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.event.ChangeListener;
 
 /**
  *
  * @author Aaron Lucia
  */
-public class SyncIndexUI extends JFrame implements ActionListener {
+public class SyncIndexUI extends JFrame implements ActionListener, ChangeListener {
 
     private final SyncIndex index;
     private final DefaultListModel listModel;
@@ -45,6 +49,7 @@ public class SyncIndexUI extends JFrame implements ActionListener {
         this.index = index;
         updateTitle();
         updateDirectories();
+        updateSchedule();
     }
 
     /**
@@ -56,8 +61,8 @@ public class SyncIndexUI extends JFrame implements ActionListener {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        intervalGroup = new javax.swing.ButtonGroup();
         okButton = new javax.swing.JButton();
-        cancelButton = new javax.swing.JButton();
         indexLabel = new javax.swing.JLabel();
         tabbedPane = new javax.swing.JTabbedPane();
         directoriesPanel = new javax.swing.JPanel();
@@ -66,15 +71,25 @@ public class SyncIndexUI extends JFrame implements ActionListener {
         directoriesScrollPane = new javax.swing.JScrollPane();
         directoriesList = new javax.swing.JList(listModel);
         schedulePanel = new javax.swing.JPanel();
+        enabledCheckBox = new javax.swing.JCheckBox();
+        minuteRadioButton = new javax.swing.JRadioButton();
+        hourRadioButton = new javax.swing.JRadioButton();
+        dayRadioButton = new javax.swing.JRadioButton();
+        weekRadioButton = new javax.swing.JRadioButton();
+        monthRadioButton = new javax.swing.JRadioButton();
+        yearRadioButton = new javax.swing.JRadioButton();
+        repeatSpinner = new javax.swing.JSpinner();
         statsPanel = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
 
         setTitle("Sync Index");
 
         okButton.setText("OK");
         okButton.addActionListener(this);
-
-        cancelButton.setText("Cancel");
-        cancelButton.addActionListener(this);
 
         indexLabel.setText("Sync Index");
 
@@ -115,28 +130,118 @@ public class SyncIndexUI extends JFrame implements ActionListener {
 
         tabbedPane.addTab("Directories", directoriesPanel);
 
+        enabledCheckBox.setText("Enabled");
+        enabledCheckBox.addActionListener(this);
+
+        intervalGroup.add(minuteRadioButton);
+        minuteRadioButton.setText("Minute");
+        minuteRadioButton.addActionListener(this);
+
+        intervalGroup.add(hourRadioButton);
+        hourRadioButton.setSelected(true);
+        hourRadioButton.setText("Hour");
+        hourRadioButton.addActionListener(this);
+
+        intervalGroup.add(dayRadioButton);
+        dayRadioButton.setText("Day");
+        dayRadioButton.addActionListener(this);
+
+        intervalGroup.add(weekRadioButton);
+        weekRadioButton.setText("Week");
+        weekRadioButton.addActionListener(this);
+
+        intervalGroup.add(monthRadioButton);
+        monthRadioButton.setText("Month");
+        monthRadioButton.addActionListener(this);
+
+        intervalGroup.add(yearRadioButton);
+        yearRadioButton.setText("Year");
+        yearRadioButton.addActionListener(this);
+
+        repeatSpinner.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(1), Integer.valueOf(1), null, Integer.valueOf(1)));
+        repeatSpinner.addChangeListener(this);
+
         javax.swing.GroupLayout schedulePanelLayout = new javax.swing.GroupLayout(schedulePanel);
         schedulePanel.setLayout(schedulePanelLayout);
         schedulePanelLayout.setHorizontalGroup(
             schedulePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 395, Short.MAX_VALUE)
+            .addGroup(schedulePanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(schedulePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(enabledCheckBox)
+                    .addGroup(schedulePanelLayout.createSequentialGroup()
+                        .addComponent(minuteRadioButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(hourRadioButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(dayRadioButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(weekRadioButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(monthRadioButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(yearRadioButton))
+                    .addComponent(repeatSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(79, Short.MAX_VALUE))
         );
         schedulePanelLayout.setVerticalGroup(
             schedulePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 340, Short.MAX_VALUE)
+            .addGroup(schedulePanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(enabledCheckBox)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(schedulePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(minuteRadioButton)
+                    .addComponent(hourRadioButton)
+                    .addComponent(dayRadioButton)
+                    .addComponent(weekRadioButton)
+                    .addComponent(monthRadioButton)
+                    .addComponent(yearRadioButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(repeatSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(265, Short.MAX_VALUE))
         );
 
         tabbedPane.addTab("Schedule", schedulePanel);
+
+        jLabel1.setText("File count:");
+
+        jLabel2.setText("Files added:");
+
+        jLabel3.setText("Files unmodified:");
+
+        jLabel4.setText("Files modified:");
+
+        jLabel5.setText("Files removed:");
 
         javax.swing.GroupLayout statsPanelLayout = new javax.swing.GroupLayout(statsPanel);
         statsPanel.setLayout(statsPanelLayout);
         statsPanelLayout.setHorizontalGroup(
             statsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 395, Short.MAX_VALUE)
+            .addGroup(statsPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(statsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel2)
+                    .addComponent(jLabel3)
+                    .addComponent(jLabel4)
+                    .addComponent(jLabel5))
+                .addContainerGap(305, Short.MAX_VALUE))
         );
         statsPanelLayout.setVerticalGroup(
             statsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 340, Short.MAX_VALUE)
+            .addGroup(statsPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel4)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel5)
+                .addContainerGap(235, Short.MAX_VALUE))
         );
 
         tabbedPane.addTab("Stats", statsPanel);
@@ -147,17 +252,13 @@ public class SyncIndexUI extends JFrame implements ActionListener {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(okButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cancelButton))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(indexLabel)
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                .addComponent(indexLabel)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addComponent(tabbedPane, javax.swing.GroupLayout.Alignment.TRAILING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(okButton)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -167,9 +268,7 @@ public class SyncIndexUI extends JFrame implements ActionListener {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(tabbedPane)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(okButton)
-                    .addComponent(cancelButton))
+                .addComponent(okButton)
                 .addContainerGap())
         );
 
@@ -179,17 +278,41 @@ public class SyncIndexUI extends JFrame implements ActionListener {
     // Code for dispatching events from components to event handlers.
 
     public void actionPerformed(java.awt.event.ActionEvent evt) {
-        if (evt.getSource() == addButton) {
+        if (evt.getSource() == okButton) {
+            SyncIndexUI.this.okButtonActionPerformed(evt);
+        }
+        else if (evt.getSource() == addButton) {
             SyncIndexUI.this.addButtonActionPerformed(evt);
         }
         else if (evt.getSource() == removeButton) {
             SyncIndexUI.this.removeButtonActionPerformed(evt);
         }
-        else if (evt.getSource() == okButton) {
-            SyncIndexUI.this.okButtonActionPerformed(evt);
+        else if (evt.getSource() == enabledCheckBox) {
+            SyncIndexUI.this.scheduleActionPerformed(evt);
         }
-        else if (evt.getSource() == cancelButton) {
-            SyncIndexUI.this.cancelButtonActionPerformed(evt);
+        else if (evt.getSource() == minuteRadioButton) {
+            SyncIndexUI.this.scheduleActionPerformed(evt);
+        }
+        else if (evt.getSource() == hourRadioButton) {
+            SyncIndexUI.this.scheduleActionPerformed(evt);
+        }
+        else if (evt.getSource() == dayRadioButton) {
+            SyncIndexUI.this.scheduleActionPerformed(evt);
+        }
+        else if (evt.getSource() == weekRadioButton) {
+            SyncIndexUI.this.scheduleActionPerformed(evt);
+        }
+        else if (evt.getSource() == monthRadioButton) {
+            SyncIndexUI.this.scheduleActionPerformed(evt);
+        }
+        else if (evt.getSource() == yearRadioButton) {
+            SyncIndexUI.this.scheduleActionPerformed(evt);
+        }
+    }
+
+    public void stateChanged(javax.swing.event.ChangeEvent evt) {
+        if (evt.getSource() == repeatSpinner) {
+            SyncIndexUI.this.repeatSpinnerStateChanged(evt);
         }
     }// </editor-fold>//GEN-END:initComponents
 
@@ -216,22 +339,52 @@ public class SyncIndexUI extends JFrame implements ActionListener {
         dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
     }//GEN-LAST:event_okButtonActionPerformed
 
-    private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
-        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
-    }//GEN-LAST:event_cancelButtonActionPerformed
+    private void scheduleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_scheduleActionPerformed
+        index.getSchedule().setEnabled(enabledCheckBox.isSelected());
+        if (minuteRadioButton.isSelected()) {
+            index.getSchedule().setInterval(SyncInterval.MINUTE);
+        } else if (hourRadioButton.isSelected()) {
+            index.getSchedule().setInterval(SyncInterval.HOUR);
+        } else if (dayRadioButton.isSelected()) {
+            index.getSchedule().setInterval(SyncInterval.DAY);
+        } else if (weekRadioButton.isSelected()) {
+            index.getSchedule().setInterval(SyncInterval.WEEK);
+        } else if (monthRadioButton.isSelected()) {
+            index.getSchedule().setInterval(SyncInterval.MONTH);
+        } else if (yearRadioButton.isSelected()) {
+            index.getSchedule().setInterval(SyncInterval.YEAR);
+        }
+    }//GEN-LAST:event_scheduleActionPerformed
+
+    private void repeatSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_repeatSpinnerStateChanged
+        index.getSchedule().setRepeat(Integer.parseInt(repeatSpinner.getValue().toString()));
+    }//GEN-LAST:event_repeatSpinnerStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
-    private javax.swing.JButton cancelButton;
+    private javax.swing.JRadioButton dayRadioButton;
     private javax.swing.JList directoriesList;
     private javax.swing.JPanel directoriesPanel;
     private javax.swing.JScrollPane directoriesScrollPane;
+    private javax.swing.JCheckBox enabledCheckBox;
+    private javax.swing.JRadioButton hourRadioButton;
     private javax.swing.JLabel indexLabel;
+    private javax.swing.ButtonGroup intervalGroup;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JRadioButton minuteRadioButton;
+    private javax.swing.JRadioButton monthRadioButton;
     private javax.swing.JButton okButton;
     private javax.swing.JButton removeButton;
+    private javax.swing.JSpinner repeatSpinner;
     private javax.swing.JPanel schedulePanel;
     private javax.swing.JPanel statsPanel;
     private javax.swing.JTabbedPane tabbedPane;
+    private javax.swing.JRadioButton weekRadioButton;
+    private javax.swing.JRadioButton yearRadioButton;
     // End of variables declaration//GEN-END:variables
 
     private void updateTitle() {
@@ -241,9 +394,34 @@ public class SyncIndexUI extends JFrame implements ActionListener {
 
     private void updateDirectories() {
         listModel.clear();
-        
+
         for (Path path : index.getDirectories()) {
             listModel.addElement(path);
         }
+    }
+
+    private void updateSchedule() {
+        enabledCheckBox.setSelected(index.getSchedule().isEnabled());
+        switch (index.getSchedule().getInterval()) {
+            case MINUTE:
+                minuteRadioButton.setSelected(true);
+                break;
+            case HOUR:
+                hourRadioButton.setSelected(true);
+                break;
+            case DAY:
+                dayRadioButton.setSelected(true);
+                break;
+            case WEEK:
+                weekRadioButton.setSelected(true);
+                break;
+            case MONTH:
+                monthRadioButton.setSelected(true);
+                break;
+            case YEAR:
+                yearRadioButton.setSelected(true);
+                break;
+        }
+        repeatSpinner.setValue(index.getSchedule().getRepeat());
     }
 }

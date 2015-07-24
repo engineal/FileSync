@@ -16,7 +16,6 @@
  */
 package filesync.engine;
 
-import filesync.StatusListener;
 import filesync.SyncIndex;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -56,7 +55,8 @@ public class SyncEngineTest {
     @Test
     public void testRun() {
         System.out.println("run");
-        SyncEngine instance = null;
+        SyncIndex index = new SyncIndex("Test");
+        SyncEngine instance = index.getSyncEngine();
         instance.run();
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
@@ -68,7 +68,8 @@ public class SyncEngineTest {
     @Test
     public void testGetIndex() {
         System.out.println("getIndex");
-        SyncEngine instance = null;
+        SyncIndex index = new SyncIndex("Test");
+        SyncEngine instance = index.getSyncEngine();
         SyncIndex expResult = null;
         SyncIndex result = instance.getIndex();
         assertEquals(expResult, result);
@@ -82,7 +83,8 @@ public class SyncEngineTest {
     @Test
     public void testIsRunning() {
         System.out.println("isRunning");
-        SyncEngine instance = null;
+        SyncIndex index = new SyncIndex("Test");
+        SyncEngine instance = index.getSyncEngine();
         boolean expResult = false;
         boolean result = instance.isRunning();
         assertEquals(expResult, result);
@@ -96,7 +98,8 @@ public class SyncEngineTest {
     @Test
     public void testPauseSync() {
         System.out.println("pauseSync");
-        SyncEngine instance = null;
+        SyncIndex index = new SyncIndex("Test");
+        SyncEngine instance = index.getSyncEngine();
         instance.pauseSync();
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
@@ -108,7 +111,8 @@ public class SyncEngineTest {
     @Test
     public void testResumeSync() {
         System.out.println("resumeSync");
-        SyncEngine instance = null;
+        SyncIndex index = new SyncIndex("Test");
+        SyncEngine instance = index.getSyncEngine();
         instance.resumeSync();
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
@@ -120,36 +124,10 @@ public class SyncEngineTest {
     @Test
     public void testStopSync() {
         System.out.println("stopSync");
-        SyncEngine instance = null;
+        SyncIndex index = new SyncIndex("Test");
+        SyncEngine instance = index.getSyncEngine();
         instance.stopSync();
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }
-
-    /**
-     * Test of addStatusListener method, of class SyncEngine.
-     */
-    @Test
-    public void testAddStatusListener() {
-        System.out.println("addStatusListener");
-        StatusListener listener = null;
-        SyncEngine instance = null;
-        instance.addStatusListener(listener);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of removeStatusListener method, of class SyncEngine.
-     */
-    @Test
-    public void testRemoveStatusListener() {
-        System.out.println("removeStatusListener");
-        StatusListener listener = null;
-        SyncEngine instance = null;
-        instance.removeStatusListener(listener);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-    
 }

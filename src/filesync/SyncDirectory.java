@@ -16,7 +16,6 @@
  */
 package filesync;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -27,7 +26,7 @@ import java.util.List;
  * @author Aaron Lucia
  * @version Dec 17, 2014
  */
-public class SyncDirectory extends SyncFile implements Serializable, Collection<SyncFile> {
+public class SyncDirectory extends SyncFile implements Collection<SyncFile> {
 
     private final List<SyncFile> files;
 

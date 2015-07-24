@@ -14,37 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package filesync;
+package filesync.io;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import filesync.SyncIndex;
+import java.io.File;
+import java.io.IOException;
 
 /**
  *
  * @author Aaron Lucia
+ * @version Jul 23, 2015
  */
-@RunWith(Suite.class)
-@Suite.SuiteClasses({filesync.engine.SyncEngineTest.class, filesync.FileSyncTest.class})
-public class SyncTestSuite {
+public interface IndexIO {
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-
-    @Before
-    public void setUp() throws Exception {
-    }
-
-    @After
-    public void tearDown() throws Exception {
-    }
-    
+    public abstract SyncIndex load() throws IOException, ClassNotFoundException;
+    public abstract void save(SyncIndex index) throws IOException;
 }

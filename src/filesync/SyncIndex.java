@@ -16,7 +16,7 @@
  */
 package filesync;
 
-import java.io.Serializable;
+import filesync.engine.SyncEngine;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,14 +26,20 @@ import java.util.List;
  * @author Aaron Lucia
  * @version Dec 17, 2014
  */
-public class SyncIndex extends SyncDirectory implements Serializable {
+public class SyncIndex extends SyncDirectory {
 
     public static final long serialVersionUID = 1;
     private final List<Path> directories;
+    private SyncSchedule schedule;
+    private SyncStats stats;
+    private transient SyncEngine engine;
 
     public SyncIndex(String name) {
         super(name);
         this.directories = new ArrayList<>();
+        schedule = new SyncSchedule();
+        stats = new SyncStats();
+        engine = new SyncEngine(this);
     }
     
     public SyncIndex(String name, List<Path> directories) {
@@ -43,5 +49,17 @@ public class SyncIndex extends SyncDirectory implements Serializable {
 
     public List<Path> getDirectories() {
         return directories;
+    }
+    
+    public SyncSchedule getSchedule() {
+        return schedule;
+    }
+    
+    public SyncSchedule getStats() {
+        return schedule;
+    }
+    
+    public SyncEngine getSyncEngine() {
+        return engine;
     }
 }
