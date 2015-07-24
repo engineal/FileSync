@@ -22,28 +22,33 @@ import static filesync.ui.UIAction.Pause;
 import static filesync.ui.UIAction.Sync;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
-import java.io.File;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JFileChooser;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.DefaultListModel;
+import javax.swing.JFrame;
 
 /**
  *
  * @author Aaron Lucia
  */
-public class FileSyncUI extends javax.swing.JFrame implements ActionListener {
+public class FileSyncUI extends JFrame implements ActionListener {
 
+    private final List<SyncIndex> syncIndexes;
     private final List<UIListener> _uiListeners;
+    private final DefaultListModel listModel;
 
     /**
      * Creates new form FileSyncUI
+     *
+     * @param syncIndexes
      */
-    public FileSyncUI() {
+    public FileSyncUI(List<SyncIndex> syncIndexes) {
+        listModel = new DefaultListModel();
         initComponents();
+        this.syncIndexes = syncIndexes;
         _uiListeners = new ArrayList<>();
         versionLabel.setText(FileSync.VERSION);
+        updateIndexes();
     }
 
     /**
@@ -56,16 +61,12 @@ public class FileSyncUI extends javax.swing.JFrame implements ActionListener {
     private void initComponents() {
 
         tabbedPane = new javax.swing.JTabbedPane();
-        directoriesPanel = new javax.swing.JPanel();
+        indexesPanel = new javax.swing.JPanel();
         addButton = new javax.swing.JButton();
+        modifyButton = new javax.swing.JButton();
         removeButton = new javax.swing.JButton();
-        directoriesScrollPane = new javax.swing.JScrollPane();
-        directoriesTable = new javax.swing.JTable();
-        schedulePanel = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jComboBox1 = new javax.swing.JComboBox();
-        jLabel2 = new javax.swing.JLabel();
-        jSpinner1 = new javax.swing.JSpinner();
+        indexesScrollPane = new javax.swing.JScrollPane();
+        indexesList = new javax.swing.JList(listModel);
         aboutPanel = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
@@ -78,8 +79,8 @@ public class FileSyncUI extends javax.swing.JFrame implements ActionListener {
         pauseButton = new javax.swing.JButton();
         syncProgressBar = new javax.swing.JProgressBar();
         exitButton = new javax.swing.JButton();
-        Save = new javax.swing.JButton();
-        Cancel = new javax.swing.JButton();
+        saveButton = new javax.swing.JButton();
+        cancelButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("FileSync");
@@ -87,80 +88,46 @@ public class FileSyncUI extends javax.swing.JFrame implements ActionListener {
         addButton.setText("Add");
         addButton.addActionListener(this);
 
+        modifyButton.setText("Modify");
+        modifyButton.addActionListener(this);
+
         removeButton.setText("Remove");
         removeButton.addActionListener(this);
 
-        directoriesTable.setModel(new TableModel());
-        directoriesTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        directoriesTable.setDefaultRenderer(File.class, new TableRenderer());
-        directoriesScrollPane.setViewportView(directoriesTable);
+        indexesScrollPane.setViewportView(indexesList);
 
-        javax.swing.GroupLayout directoriesPanelLayout = new javax.swing.GroupLayout(directoriesPanel);
-        directoriesPanel.setLayout(directoriesPanelLayout);
-        directoriesPanelLayout.setHorizontalGroup(
-            directoriesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(directoriesPanelLayout.createSequentialGroup()
+        javax.swing.GroupLayout indexesPanelLayout = new javax.swing.GroupLayout(indexesPanel);
+        indexesPanel.setLayout(indexesPanelLayout);
+        indexesPanelLayout.setHorizontalGroup(
+            indexesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(indexesPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(directoriesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(directoriesPanelLayout.createSequentialGroup()
+                .addGroup(indexesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(indexesPanelLayout.createSequentialGroup()
+                        .addComponent(indexesScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 475, Short.MAX_VALUE)
+                        .addContainerGap())
+                    .addGroup(indexesPanelLayout.createSequentialGroup()
                         .addComponent(addButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(modifyButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(removeButton)
-                        .addGap(0, 329, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, directoriesPanelLayout.createSequentialGroup()
-                        .addComponent(directoriesScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                        .addContainerGap())))
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
-        directoriesPanelLayout.setVerticalGroup(
-            directoriesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, directoriesPanelLayout.createSequentialGroup()
+        indexesPanelLayout.setVerticalGroup(
+            indexesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, indexesPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(directoriesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(indexesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(addButton)
-                    .addComponent(removeButton))
+                    .addComponent(removeButton)
+                    .addComponent(modifyButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(directoriesScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 227, Short.MAX_VALUE)
+                .addComponent(indexesScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 381, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
-        tabbedPane.addTab("Directories", directoriesPanel);
-
-        jLabel1.setText("Run schedule");
-
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Hour", "Day", "Week", "Month" }));
-
-        jLabel2.setText("times per");
-
-        jSpinner1.setValue(1);
-
-        javax.swing.GroupLayout schedulePanelLayout = new javax.swing.GroupLayout(schedulePanel);
-        schedulePanel.setLayout(schedulePanelLayout);
-        schedulePanelLayout.setHorizontalGroup(
-            schedulePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(schedulePanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(253, Short.MAX_VALUE))
-        );
-        schedulePanelLayout.setVerticalGroup(
-            schedulePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(schedulePanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(schedulePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel2)
-                    .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(247, Short.MAX_VALUE))
-        );
-
-        tabbedPane.addTab("Schedule", schedulePanel);
+        tabbedPane.addTab("Indexes", indexesPanel);
 
         jLabel3.setText("FileSync by Aaron Lucia");
 
@@ -196,7 +163,7 @@ public class FileSyncUI extends javax.swing.JFrame implements ActionListener {
                         .addComponent(browseButton))
                     .addGroup(aboutPanelLayout.createSequentialGroup()
                         .addComponent(syncButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 285, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 313, Short.MAX_VALUE)
                         .addComponent(pauseButton))
                     .addGroup(aboutPanelLayout.createSequentialGroup()
                         .addGroup(aboutPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -206,7 +173,7 @@ public class FileSyncUI extends javax.swing.JFrame implements ActionListener {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(versionLabel))
                             .addComponent(jLabel3))
-                        .addGap(0, 334, Short.MAX_VALUE)))
+                        .addGap(0, 362, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         aboutPanelLayout.setVerticalGroup(
@@ -225,7 +192,7 @@ public class FileSyncUI extends javax.swing.JFrame implements ActionListener {
                     .addComponent(jLabel6)
                     .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(browseButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 130, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 284, Short.MAX_VALUE)
                 .addGroup(aboutPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(syncButton)
                     .addComponent(pauseButton))
@@ -239,11 +206,11 @@ public class FileSyncUI extends javax.swing.JFrame implements ActionListener {
         exitButton.setText("Exit");
         exitButton.addActionListener(this);
 
-        Save.setText("Save");
-        Save.addActionListener(this);
+        saveButton.setText("Save");
+        saveButton.addActionListener(this);
 
-        Cancel.setText("Cancel");
-        Cancel.addActionListener(this);
+        cancelButton.setText("Cancel");
+        cancelButton.addActionListener(this);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -253,9 +220,9 @@ public class FileSyncUI extends javax.swing.JFrame implements ActionListener {
                 .addContainerGap()
                 .addComponent(exitButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(Save)
+                .addComponent(saveButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(Cancel)
+                .addComponent(cancelButton)
                 .addContainerGap())
             .addComponent(tabbedPane)
         );
@@ -265,8 +232,8 @@ public class FileSyncUI extends javax.swing.JFrame implements ActionListener {
                 .addComponent(tabbedPane)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(Cancel)
-                    .addComponent(Save)
+                    .addComponent(cancelButton)
+                    .addComponent(saveButton)
                     .addComponent(exitButton))
                 .addContainerGap())
         );
@@ -292,45 +259,38 @@ public class FileSyncUI extends javax.swing.JFrame implements ActionListener {
         else if (evt.getSource() == exitButton) {
             FileSyncUI.this.exitButtonActionPerformed(evt);
         }
-        else if (evt.getSource() == Save) {
-            FileSyncUI.this.SaveActionPerformed(evt);
+        else if (evt.getSource() == saveButton) {
+            FileSyncUI.this.saveButtonActionPerformed(evt);
         }
-        else if (evt.getSource() == Cancel) {
-            FileSyncUI.this.CancelActionPerformed(evt);
+        else if (evt.getSource() == cancelButton) {
+            FileSyncUI.this.cancelButtonActionPerformed(evt);
+        }
+        else if (evt.getSource() == modifyButton) {
+            FileSyncUI.this.modifyButtonActionPerformed(evt);
         }
     }// </editor-fold>//GEN-END:initComponents
 
-    private void SaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SaveActionPerformed
+    private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
         dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
-    }//GEN-LAST:event_SaveActionPerformed
+    }//GEN-LAST:event_saveButtonActionPerformed
 
-    private void CancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CancelActionPerformed
+    private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
         dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
-    }//GEN-LAST:event_CancelActionPerformed
+    }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-        TableModel model = (TableModel) directoriesTable.getModel();
-        JFileChooser chooser = new JFileChooser();
-        chooser.setCurrentDirectory(new File("."));
-        chooser.setDialogTitle("Select Directory");
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        chooser.setAcceptAllFileFilterUsed(false);
-        List<Path> directories = new ArrayList<>();
-        if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            directories.add(chooser.getSelectedFile().toPath());
-            if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                directories.add(chooser.getSelectedFile().toPath());
-                model.addRow(new SyncIndex("", directories));
-            }
-        }
+        SyncIndex index = new SyncIndex("New");
+        syncIndexes.add(index);
+        SyncIndexUI indexUI = new SyncIndexUI(index);
+        indexUI.setVisible(true);
+        updateIndexes();
     }//GEN-LAST:event_addButtonActionPerformed
 
     private void removeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeButtonActionPerformed
-        DefaultTableModel model = (DefaultTableModel) directoriesTable.getModel();
-        int[] rows = directoriesTable.getSelectedRows();
-        for (int i = 0; i < rows.length; i++) {
-            model.removeRow(rows[i] - i);
+        if (indexesList.getSelectedValue() instanceof SyncIndex) {
+            syncIndexes.remove((SyncIndex) indexesList.getSelectedValue());
         }
+        updateIndexes();
     }//GEN-LAST:event_removeButtonActionPerformed
 
     private void syncButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_syncButtonActionPerformed
@@ -345,28 +305,31 @@ public class FileSyncUI extends javax.swing.JFrame implements ActionListener {
         fireUIEvent(Pause);
     }//GEN-LAST:event_pauseButtonActionPerformed
 
+    private void modifyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_modifyButtonActionPerformed
+        if (indexesList.getSelectedValue() instanceof SyncIndex) {
+            SyncIndexUI indexUI = new SyncIndexUI((SyncIndex) indexesList.getSelectedValue());
+            indexUI.setVisible(true);
+        }
+    }//GEN-LAST:event_modifyButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton Cancel;
-    private javax.swing.JButton Save;
     private javax.swing.JPanel aboutPanel;
     private javax.swing.JButton addButton;
     private javax.swing.JButton browseButton;
-    private javax.swing.JPanel directoriesPanel;
-    private javax.swing.JScrollPane directoriesScrollPane;
-    private javax.swing.JTable directoriesTable;
+    private javax.swing.JButton cancelButton;
     private javax.swing.JButton exitButton;
-    private javax.swing.JComboBox jComboBox1;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
+    private javax.swing.JList indexesList;
+    private javax.swing.JPanel indexesPanel;
+    private javax.swing.JScrollPane indexesScrollPane;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JSpinner jSpinner1;
     private javax.swing.JTextField jTextField1;
+    private javax.swing.JButton modifyButton;
     private javax.swing.JButton pauseButton;
     private javax.swing.JButton removeButton;
-    private javax.swing.JPanel schedulePanel;
+    private javax.swing.JButton saveButton;
     private javax.swing.JButton syncButton;
     private javax.swing.JProgressBar syncProgressBar;
     private javax.swing.JTabbedPane tabbedPane;
@@ -390,6 +353,14 @@ public class FileSyncUI extends javax.swing.JFrame implements ActionListener {
             pauseButton.setText("Pause Schedule");
         }
         pack();
+    }
+
+    private void updateIndexes() {
+        listModel.clear();
+        
+        for (SyncIndex index : syncIndexes) {
+            listModel.addElement(index);
+        }
     }
 
     /**

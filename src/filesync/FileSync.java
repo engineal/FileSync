@@ -60,9 +60,9 @@ public class FileSync implements StatusListener, UIListener {
         sync.processArgs(args);
     }
 
-    private FileSyncUI settings;
     private FileSyncSystemTray tray;
     private List<SyncEngine> syncEngines;
+    private List<SyncIndex> syncIndexes;
 
     private FileSync() {
         try {
@@ -80,10 +80,13 @@ public class FileSync implements StatusListener, UIListener {
         }
 
         syncEngines = new ArrayList<>();
+        syncIndexes = new ArrayList<>();
         File dataDir = new File("Data");
         for (File file : dataDir.listFiles()) {
             try {
-                SyncEngine syncEngine = new SyncEngine(SaveSyncIndex.load(file));
+                SyncIndex index = SaveSyncIndex.load(file);
+                syncIndexes.add(index);
+                SyncEngine syncEngine = new SyncEngine(index);
                 log.log(Level.SEVERE, "Loaded {0}", syncEngine.getIndex());
                 syncEngine.addStatusListener(this);
                 syncEngines.add(syncEngine);
@@ -107,8 +110,6 @@ public class FileSync implements StatusListener, UIListener {
                 try {
                     tray = new FileSyncSystemTray();
                     tray.addUIListener(this);
-                    settings = new FileSyncUI();
-                    settings.addUIListener(this);
                 } catch (AWTException ex) {
                     log.log(Level.SEVERE, ex.getMessage(), ex);
                 }
@@ -120,14 +121,11 @@ public class FileSync implements StatusListener, UIListener {
     public void statusUpdated(StatusEvent event) {
         if (!event.isSyncing()) {
             try {
-                SaveSyncIndex.save(new File("Data\\Index.json"), event.getIndex());
+                SaveSyncIndex.save(new File("Data\\" + event.getIndex().getName() + ".json"), event.getIndex());
                 log.log(Level.SEVERE, "Saved {0}", event.getIndex());
             } catch (IOException ex) {
                 log.log(Level.SEVERE, ex.getMessage(), ex);
             }
-        }
-        if (settings != null) {
-            settings.updateSyncStatus(event.isSyncing(), event.getPercent());
         }
     }
 
@@ -135,13 +133,12 @@ public class FileSync implements StatusListener, UIListener {
     public void actionPerformed(UIEvent event) {
         switch (event.getAction()) {
             case Settings:
-                settings.setVisible(true);
+                new FileSyncUI(syncIndexes).setVisible(true);
                 break;
             case Sync:
                 sync();
                 break;
             case Pause:
-                pauseSchedule();
                 break;
         }
     }
@@ -156,10 +153,5 @@ public class FileSync implements StatusListener, UIListener {
                 syncEngine.resumeSync();
             }
         }
-    }
-
-    public void pauseSchedule() {
-        settings.updatePauseStatus(true);
-        settings.updatePauseStatus(false);
     }
 }
