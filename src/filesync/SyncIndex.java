@@ -30,21 +30,21 @@ public class SyncIndex extends SyncDirectory {
 
     public static final long serialVersionUID = 1;
     private final List<Path> directories;
-    private SyncSchedule schedule;
-    private SyncStats stats;
-    private transient SyncEngine engine;
+    private final SyncSchedule schedule;
+    private final transient SyncEngine engine;
 
     public SyncIndex(String name) {
         super(name);
         this.directories = new ArrayList<>();
         schedule = new SyncSchedule();
-        stats = new SyncStats();
         engine = new SyncEngine(this);
     }
     
     public SyncIndex(String name, List<Path> directories) {
         super(name);
         this.directories = directories;
+        schedule = new SyncSchedule();
+        engine = new SyncEngine(this);
     }
 
     public List<Path> getDirectories() {
@@ -52,10 +52,6 @@ public class SyncIndex extends SyncDirectory {
     }
     
     public SyncSchedule getSchedule() {
-        return schedule;
-    }
-    
-    public SyncSchedule getStats() {
         return schedule;
     }
     

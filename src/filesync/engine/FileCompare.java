@@ -110,7 +110,7 @@ public class FileCompare {
         for (File file : files) {
             Path source = Paths.get(file.getAbsolutePath());
             log.log(Level.FINE, "Removing {0}", source);
-            Files.delete(source);
+            Files.deleteIfExists(source);
         }
     }
 }

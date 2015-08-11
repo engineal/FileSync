@@ -14,8 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package filesync;
+package filesync.engine;
 
+import filesync.SyncIndex;
+import filesync.SyncStats;
 import java.util.EventObject;
 
 /**
@@ -23,15 +25,17 @@ import java.util.EventObject;
  * @author Aaron Lucia
  * @version Dec 16, 2014
  */
-public class StatusEvent extends EventObject {
+public class SyncEvent extends EventObject {
 
     private final boolean syncing;
+    private final boolean done;
     private final SyncStats stats;
     private final SyncIndex index;
 
-    public StatusEvent(Object source, boolean syncing, SyncStats stats, SyncIndex index) {
+    public SyncEvent(Object source, boolean syncing, boolean done, SyncStats stats, SyncIndex index) {
         super(source);
         this.syncing = syncing;
+        this.done = done;
         this.stats = stats;
         this.index = index;
     }
@@ -39,11 +43,15 @@ public class StatusEvent extends EventObject {
     public boolean isSyncing() {
         return syncing;
     }
-    
+
+    public boolean isDone() {
+        return done;
+    }
+
     public SyncStats getStats() {
         return stats;
     }
-    
+
     public SyncIndex getIndex() {
         return index;
     }

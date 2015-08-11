@@ -16,6 +16,8 @@
  */
 package filesync;
 
+import filesync.engine.SyncListener;
+import filesync.engine.SyncEvent;
 import filesync.io.SaveSyncIndex;
 import filesync.engine.SyncEngine;
 import filesync.ui.Console;
@@ -42,7 +44,7 @@ import javax.swing.UnsupportedLookAndFeelException;
  * @author Aaron Lucia
  * @version Dec 16, 2014
  */
-public class FileSync implements StatusListener, UIListener {
+public class FileSync implements SyncListener, UIListener {
 
     public static final String VERSION = "1.0.DEV";
     private static final Logger log = Logger.getLogger(FileSync.class.getName());
@@ -103,7 +105,6 @@ public class FileSync implements StatusListener, UIListener {
 
     private void processArgs(String[] args) {
         Console console = new Console(args);
-        console.addUIListener(this);
 
         if (console.isTray()) {
             java.awt.EventQueue.invokeLater(() -> {
@@ -127,7 +128,7 @@ public class FileSync implements StatusListener, UIListener {
     }
 
     @Override
-    public void statusUpdated(StatusEvent event) {
+    public void statusUpdated(SyncEvent event) {
         if (!event.isSyncing()) {
             try {
                 SaveSyncIndex.save(new File("Data\\" + event.getIndex().getName() + ".json"), event.getIndex());
@@ -156,7 +157,7 @@ public class FileSync implements StatusListener, UIListener {
 
     public synchronized void sync() {
         for (SyncIndex index : syncIndexes) {
-            index.getSyncEngine().start();
+            index.getSyncEngine().startCrawl();
         }
     }
 }

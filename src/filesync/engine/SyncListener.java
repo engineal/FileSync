@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package filesync;
+package filesync.engine;
 
 import java.util.EventListener;
 
@@ -23,6 +23,6 @@ import java.util.EventListener;
  * @author Aaron Lucia
  * @version Dec 16, 2014
  */
-public interface StatusListener extends EventListener {
-    public void statusUpdated(StatusEvent event);
+public interface SyncListener extends EventListener {
+    public void statusUpdated(SyncEvent event);
 }

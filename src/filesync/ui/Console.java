@@ -16,9 +16,6 @@
  */
 package filesync.ui;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  *
  * @author Aaron Lucia
@@ -26,13 +23,11 @@ import java.util.List;
  */
 public class Console {
 
-    private final List<UIListener> _uiListeners;
     private boolean tray;
     private boolean settings;
     private boolean sync;
 
     public Console(String[] args) {
-        _uiListeners = new ArrayList<>();
         tray = args.length == 0;
         settings = false;
         sync = false;
@@ -63,34 +58,5 @@ public class Console {
     
     public boolean isSync() {
         return settings;
-    }
-
-    /**
-     *
-     * @param listener
-     */
-    public synchronized void addUIListener(UIListener listener) {
-        if (!_uiListeners.contains(listener)) {
-            _uiListeners.add(listener);
-        }
-    }
-
-    /**
-     *
-     * @param listener
-     */
-    public synchronized void removeUIListener(UIListener listener) {
-        _uiListeners.remove(listener);
-    }
-
-    /**
-     *
-     * @param status
-     */
-    private synchronized void fireUIEvent(UIAction action) {
-        UIEvent event = new UIEvent(this, action);
-        for (UIListener listener : _uiListeners) {
-            listener.actionPerformed(event);
-        }
     }
 }
