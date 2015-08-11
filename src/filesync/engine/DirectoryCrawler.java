@@ -115,6 +115,7 @@ public class DirectoryCrawler implements Runnable {
             }
         }
 
+        state = CrawlState.Stopped;
         fireSyncStatusEvent(false, true, stats);
     }
 
@@ -160,7 +161,7 @@ public class DirectoryCrawler implements Runnable {
 
     public void stopCrawl() {
         synchronized (thread) {
-            state = CrawlState.Running;
+            state = CrawlState.Stopped;
             thread.notify();
         }
     }

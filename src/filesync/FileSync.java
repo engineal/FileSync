@@ -19,7 +19,6 @@ package filesync;
 import filesync.engine.SyncListener;
 import filesync.engine.SyncEvent;
 import filesync.io.SaveSyncIndex;
-import filesync.engine.SyncEngine;
 import filesync.ui.Console;
 import filesync.ui.FileSyncSystemTray;
 import filesync.ui.SettingsUI;
@@ -50,13 +49,6 @@ public class FileSync implements SyncListener, UIListener {
     private static final Logger log = Logger.getLogger(FileSync.class.getName());
     private static FileSync instance;
 
-    public static FileSync getInstance() {
-        if (instance == null) {
-            instance = new FileSync();
-        }
-        return instance;
-    }
-
     /**
      * @param args the command line arguments
      */
@@ -67,13 +59,27 @@ public class FileSync implements SyncListener, UIListener {
             log.log(Level.SEVERE, ex.getMessage(), ex);
         }
 
-        FileSync sync = getInstance();
-        sync.processArgs(args);
+        if (instance == null) {
+            List<SyncIndex> syncIndexes = new ArrayList<>();
+            File dataDir = new File("Data");
+            for (File file : dataDir.listFiles()) {
+                try {
+                    SyncIndex index = SaveSyncIndex.load(file);
+                    syncIndexes.add(index);
+                    log.log(Level.SEVERE, "Loaded {0}", index);
+                } catch (IOException | ClassNotFoundException ex) {
+                    log.log(Level.SEVERE, ex.getMessage(), ex);
+                }
+            }
+            instance = new FileSync(syncIndexes);
+        }
+
+        instance.processArgs(args);
     }
 
-    private List<SyncIndex> syncIndexes;
+    private final List<SyncIndex> syncIndexes;
 
-    private FileSync() {
+    private FileSync(List<SyncIndex> syncIndexes) {
         try {
             FileHandler fh = new FileHandler("log.log");
             fh.setFormatter(new LogFormatter());
@@ -89,18 +95,8 @@ public class FileSync implements SyncListener, UIListener {
         } catch (IOException | SecurityException ex) {
             log.log(Level.SEVERE, ex.getMessage(), ex);
         }
-
-        syncIndexes = new ArrayList<>();
-        File dataDir = new File("Data");
-        for (File file : dataDir.listFiles()) {
-            try {
-                SyncIndex index = SaveSyncIndex.load(file);
-                syncIndexes.add(index);
-                log.log(Level.SEVERE, "Loaded {0}", index);
-            } catch (IOException | ClassNotFoundException ex) {
-                log.log(Level.SEVERE, ex.getMessage(), ex);
-            }
-        }
+        
+        this.syncIndexes = syncIndexes;
     }
 
     private void processArgs(String[] args) {

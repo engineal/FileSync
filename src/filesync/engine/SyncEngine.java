@@ -18,6 +18,7 @@ package filesync.engine;
 
 import filesync.FileSync;
 import filesync.SyncIndex;
+import filesync.engine.DirectoryCrawler.CrawlState;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -61,6 +62,10 @@ public class SyncEngine {
         } catch (IOException ex) {
             log.log(Level.SEVERE, ex.getMessage(), ex);
         }
+    }
+
+    public CrawlState getState() {
+        return crawl.getState();
     }
     
     public void startCrawl() {
