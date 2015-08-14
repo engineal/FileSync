@@ -17,6 +17,9 @@
 package filesync.engine;
 
 import filesync.SyncFile;
+import static filesync.engine.FileCompare.SyncAction.Modified;
+import static filesync.engine.FileCompare.SyncAction.Removed;
+import static filesync.engine.FileCompare.SyncAction.Unchanged;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -53,7 +56,7 @@ public class FileCompareTest {
         for (int num : testCases) {
             File[][] files = new File[1][num];
             for (int i = 0; i < num; i++) {
-                files[0][i] = new File(testDir.getPath() + "\\Test" + i + ".txt");
+                files[0][i] = new File(testDir, "Test" + i + ".txt");
             }
             fileCollection.add(files);
         }
@@ -112,43 +115,15 @@ public class FileCompareTest {
     }
 
     /**
-     * Test of getSyncFile method, of class FileCompare.
-     */
-    @Test
-    public void testGetSyncFile() {
-        System.out.println("getSyncFile");
-        FileCompare instance = new FileCompare(files);
-        SyncFile expResult = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
-        SyncFile result = instance.getSyncFile();
-        assertEquals(expResult.getSize(), result.getSize());
-        assertEquals(expResult.getLastModified(), result.getLastModified());
-    }
-
-    /**
-     * Test of getAction method, of class FileCompare.
-     */
-    @Test
-    public void testGetActionAdded() {
-        System.out.println("getActionAdded");
-        for (int i = 1; i < files.length; i++) {
-            assertTrue(files[i].delete());
-        }
-
-        FileCompare instance = new FileCompare(files);
-        assertEquals(SyncAction.Added, instance.getAction());
-    }
-
-    /**
      * Test of getAction method, of class FileCompare.
      */
     @Test
     public void testGetActionRemoved() {
-        System.out.println("getActionRemoved");
         assertTrue(files[0].delete());
 
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(SyncAction.Removed, instance.getAction());
+        assertEquals(Removed, instance.getAction());
     }
 
     /**
@@ -156,7 +131,6 @@ public class FileCompareTest {
      */
     @Test
     public void testGetActionModified() {
-        System.out.println("getActionModified");
         try (PrintWriter out = new PrintWriter(files[0])) {
             out.print(NEW_TEST_CONTENT);
         } catch (FileNotFoundException ex) {
@@ -165,7 +139,7 @@ public class FileCompareTest {
 
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(SyncAction.Modified, instance.getAction());
+        assertEquals(Modified, instance.getAction());
     }
 
     /**
@@ -173,30 +147,9 @@ public class FileCompareTest {
      */
     @Test
     public void testGetActionUnchanged() {
-        System.out.println("getActionUnchanged");
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(SyncAction.Unchanged, instance.getAction());
-    }
-
-    /**
-     * Test of resolveConflict method, of class FileCompare.
-     *
-     * @throws java.lang.Exception
-     */
-    @Test
-    public void testResolveConflictAdded() throws Exception {
-        System.out.println("resolveConflictAdded");
-        for (int i = 1; i < files.length; i++) {
-            assertTrue(files[i].delete());
-        }
-
-        FileCompare instance = new FileCompare(files);
-        assertEquals(SyncAction.Added, instance.resolveConflict());
-
-        for (File testFile : files) {
-            assertTrue(testFile.exists());
-        }
+        assertEquals(Unchanged, instance.getAction());
     }
 
     /**
@@ -206,12 +159,11 @@ public class FileCompareTest {
      */
     @Test
     public void testResolveConflictRemoved() throws Exception {
-        System.out.println("resolveConflictRemoved");
         assertTrue(files[0].delete());
 
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(SyncAction.Removed, instance.resolveConflict());
+        assertEquals(Removed, instance.resolveConflict());
 
         for (File testFile : files) {
             assertFalse(testFile.exists());
@@ -225,7 +177,6 @@ public class FileCompareTest {
      */
     @Test
     public void testResolveConflictModified() throws Exception {
-        System.out.println("resolveConflictModified");
         try (PrintWriter out = new PrintWriter(files[0])) {
             out.print(NEW_TEST_CONTENT);
         } catch (FileNotFoundException ex) {
@@ -235,7 +186,7 @@ public class FileCompareTest {
 
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(SyncAction.Modified, instance.resolveConflict());
+        assertEquals(Modified, instance.resolveConflict());
 
         for (File testFile : files) {
             assertEquals(NEW_TEST_CONTENT.getBytes().length, testFile.length());
@@ -248,7 +199,7 @@ public class FileCompareTest {
             }
         }
 
-        assertEquals(SyncAction.Unchanged, instance.getAction());
+        assertEquals(Unchanged, instance.getAction());
     }
 
     /**
@@ -258,10 +209,9 @@ public class FileCompareTest {
      */
     @Test
     public void testResolveConflictUnchanged() throws Exception {
-        System.out.println("resolveConflictUnchanged");
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(SyncAction.Unchanged, instance.resolveConflict());
+        assertEquals(Unchanged, instance.resolveConflict());
     }
 
     /**
@@ -269,14 +219,14 @@ public class FileCompareTest {
      */
     @Test
     public void testCompareFiles() {
-        System.out.println("compareFiles");
         try (PrintWriter out = new PrintWriter(files[0])) {
             out.print(NEW_TEST_CONTENT);
         } catch (FileNotFoundException ex) {
             fail(files[0].getName() + " cannot be modified.");
         }
 
-        FileCompare instance = new FileCompare(files);
+        SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
+        FileCompare instance = new FileCompare(syncFile, files);
         assertEquals(files[0], instance.compareFiles());
     }
 }

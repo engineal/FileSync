@@ -18,7 +18,6 @@ package filesync.engine;
 
 import filesync.SyncIndex;
 import filesync.engine.DirectoryCrawler.CrawlState;
-import junit.framework.Assert;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -56,7 +55,6 @@ public class SyncEngineTest {
      */
     @Test
     public void testStartCrawl() {
-        System.out.println("startCrawl");
         SyncIndex index = new SyncIndex("Test Index");
         SyncEngine engine = new SyncEngine(index);
         engine.startCrawl();
@@ -68,7 +66,6 @@ public class SyncEngineTest {
      */
     @Test
     public void testPauseCrawl() {
-        System.out.println("pauseCrawl");
         SyncIndex index = new SyncIndex("Test Index");
         SyncEngine engine = new SyncEngine(index);
         engine.startCrawl();
@@ -83,7 +80,6 @@ public class SyncEngineTest {
      */
     @Test
     public void testStopCrawl() {
-        System.out.println("stopCrawl");
         SyncIndex index = new SyncIndex("Test Index");
         SyncEngine engine = new SyncEngine(index);
         engine.startCrawl();

@@ -21,8 +21,6 @@ import filesync.SyncFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import java.util.logging.Level;
@@ -37,42 +35,15 @@ public class FileCompare {
 
     private static final Logger log = Logger.getLogger(FileSync.class.getName());
 
-    private static void copyFile(File file, File directory) throws IOException {
-        Path source = Paths.get(file.getAbsolutePath());
-        Path destination = Paths.get(directory.getAbsolutePath() + "\\" + file.getName());
-        log.log(Level.FINE, "Copying {0} to {1}", new Object[]{source, destination});
-        Files.copy(source, destination, REPLACE_EXISTING, COPY_ATTRIBUTES);
-    }
-
     private final SyncFile syncFile;
     private final File[] files;
-
-    public FileCompare(File[] files) {
-        this.syncFile = null;
-        this.files = files;
-    }
 
     public FileCompare(SyncFile syncFile, File[] files) {
         this.syncFile = syncFile;
         this.files = files;
     }
 
-    public SyncFile getSyncFile() {
-        if (syncFile != null) {
-            return syncFile;
-        } else {
-            return new SyncFile(files[0].getName(), files[0].length(), files[0].lastModified());
-        }
-    }
-
-    public File[] getFiles() {
-        return files;
-    }
-
     public SyncAction getAction() {
-        if (syncFile == null) {
-            return SyncAction.Added;
-        }
         for (File file : files) {
             if (!file.exists()) {
                 return SyncAction.Removed;
@@ -87,9 +58,6 @@ public class FileCompare {
     public SyncAction resolveConflict() throws IOException {
         SyncAction action = getAction();
         switch (action) {
-            case Added:
-                addFiles();
-                break;
             case Modified:
                 modifyFiles();
                 break;
@@ -99,16 +67,6 @@ public class FileCompare {
         }
 
         return action;
-    }
-
-    private void addFiles() throws IOException {
-        File newFile = compareFiles();
-        for (File file : files) {
-            if (file != newFile) {
-                log.log(Level.FINE, "Copying {0} to {1}", new Object[]{newFile, file});
-                Files.copy(newFile.toPath(), file.toPath(), REPLACE_EXISTING, COPY_ATTRIBUTES);
-            }
-        }
     }
 
     private void modifyFiles() throws IOException {
@@ -138,5 +96,10 @@ public class FileCompare {
             log.log(Level.FINE, "Removing {0}", file);
             file.delete();
         }
+    }
+
+    public enum SyncAction {
+
+        Modified, Removed, Unchanged
     }
 }

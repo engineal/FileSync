@@ -21,14 +21,11 @@ import filesync.SyncDirectory;
 import filesync.SyncFile;
 import filesync.SyncIndex;
 import filesync.SyncStats;
+import static filesync.engine.FileCompare.SyncAction.Removed;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,6 +37,15 @@ import java.util.logging.Logger;
 public class DirectoryCrawler implements Runnable {
 
     private static final Logger log = Logger.getLogger(FileSync.class.getName());
+
+    private static boolean containsFile(SyncDirectory directory, File file) {
+        for (SyncFile syncFile : directory) {
+            if (syncFile.getName().equals(file.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private final SyncIndex index;
     private final Thread thread;
@@ -64,55 +70,49 @@ public class DirectoryCrawler implements Runnable {
         }
     }
 
-    private synchronized void compareDirs(SyncDirectory directory, List<Path> directories) throws Exception {
-        Queue<SyncFile> syncFiles = new LinkedList<>(directory);
-        List<File>[] actualFiles = new List[directories.size()];
-
-        for (int i = 0; i < directories.size(); i++) {
-            List<File> fileList = new ArrayList<>();
-            fileList.addAll(Arrays.asList(directories.get(i).toFile().listFiles()));
-            actualFiles[i] = fileList;
-        }
-
-        // Process all known files
-        while (!syncFiles.isEmpty()) {
-            if (checkStatus()) {
-                return;
-            }
-
-            fireSyncStatusEvent(true, false, stats);
-
-            SyncFile syncFile = syncFiles.remove();
-            File[] files = new File[directories.size()];
-
-            for (int i = 0; i < actualFiles.length; i++) {
-                List<File> fileList = actualFiles[i];
-                for (File file : fileList) {
-                    if (file.getName().equals(syncFile.getName())) {
-                        fileList.remove(file);
-                        files[i] = file;
-                        break;
+    protected synchronized void compareDirs(SyncDirectory directory, List<Path> directories) throws Exception {
+        // Add all new files
+        for (Path dir : directories) {
+            for (File file : dir.toFile().listFiles()) {
+                if (!containsFile(directory, file)) {
+                    if (file.isDirectory()) {
+                        directory.add(new SyncDirectory(file));
+                    } else {
+                        directory.add(new SyncFile(file));
                     }
                 }
             }
-
-            FileCompare comparer = new FileCompare(syncFile, files);
-            if (comparer.resolveConflict() == SyncAction.Removed) {
-                directory.remove(syncFile);
-            }
         }
 
-        // Process all new files
-        for (List<File> actualFile : actualFiles) {
+        fireSyncStatusEvent(true, false, stats);
+
+        // Process all known files
+        for (SyncFile syncFile : directory) {
             if (checkStatus()) {
                 return;
             }
 
-            List<File> fileList = actualFile;
-            for (File file : fileList) {
-                FileCompare comparer = new FileCompare(new File[]{file});
-                comparer.resolveConflict();
+            // Recursivly process directories
+            if (syncFile instanceof SyncDirectory) {
+                List<Path> newDirectories = new ArrayList<>();
+                for (Path dir : directories) {
+                    newDirectories.add(new File(dir.toFile(), syncFile.getName()).toPath());
+                }
+                compareDirs((SyncDirectory) syncFile, newDirectories);
             }
+
+            // Compare files
+            File[] files = new File[directories.size()];
+            for (int i = 0; i < directories.size(); i++) {
+                files[i] = new File(directories.get(i).toFile(), syncFile.getName());
+            }
+
+            FileCompare comparer = new FileCompare(syncFile, files);
+            if (comparer.resolveConflict() == Removed) {
+                directory.remove(syncFile);
+            }
+
+            fireSyncStatusEvent(true, false, stats);
         }
 
         state = CrawlState.Stopped;

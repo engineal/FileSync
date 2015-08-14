@@ -16,6 +16,7 @@
  */
 package filesync;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -30,8 +31,13 @@ public class SyncDirectory extends SyncFile implements Collection<SyncFile> {
 
     private final List<SyncFile> files;
 
-    public SyncDirectory(String name) {
-        super(name);
+    public SyncDirectory(File file) {
+        super(file);
+        files = new ArrayList<>();
+    }
+    
+    public SyncDirectory(String name, long size, long lastModified) {
+        super(name, size, lastModified);
         files = new ArrayList<>();
     }
     

@@ -16,6 +16,7 @@
  */
 package filesync;
 
+import java.io.File;
 import java.io.Serializable;
 
 /**
@@ -29,8 +30,10 @@ public class SyncFile implements Serializable {
     private long size;
     private long lastModified;
 
-    public SyncFile(String name) {
-        this.name = name;
+    public SyncFile(File file) {
+        name = file.getName();
+        size = file.length();
+        lastModified = file.lastModified();
     }
     
     public SyncFile(String name, long size, long lastModified) {

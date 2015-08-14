@@ -34,14 +34,14 @@ public class SyncIndex extends SyncDirectory {
     private final transient SyncEngine engine;
 
     public SyncIndex(String name) {
-        super(name);
+        super(name, 0, 0);
         this.directories = new ArrayList<>();
         schedule = new SyncSchedule();
         engine = new SyncEngine(this);
     }
     
     public SyncIndex(String name, List<Path> directories) {
-        super(name);
+        super(name, 0, 0);
         this.directories = directories;
         schedule = new SyncSchedule();
         engine = new SyncEngine(this);
