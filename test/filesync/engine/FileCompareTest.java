@@ -22,7 +22,6 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Scanner;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -44,7 +43,7 @@ public class FileCompareTest {
     private static final File testDir = new File("JUnitTestFiles");
     private static final String TEST_CONTENT = "Lorem ipsum dolor sit amet, consectetur cras amet.";
     private static final String NEW_TEST_CONTENT = "Nam interdum augue sapien. Aenean venenatis sodales nibh, in pellentesque metus porta vel cras amet.";
-    private static final long LAST_MODIFIED = new Date().getTime();
+    private static final long LAST_MODIFIED = System.currentTimeMillis() - System.currentTimeMillis() % 1000;
 
     @Parameters
     public static Collection<File[][]> generateFiles() {
@@ -99,7 +98,7 @@ public class FileCompareTest {
             } catch (FileNotFoundException ex) {
                 fail(testFile.getName() + " cannot be created.");
             }
-            testFile.setLastModified(LAST_MODIFIED);
+            assertTrue(testFile.setLastModified(LAST_MODIFIED));
         }
     }
 
