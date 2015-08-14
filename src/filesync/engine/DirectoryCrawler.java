@@ -110,7 +110,7 @@ public class DirectoryCrawler implements Runnable {
 
             List<File> fileList = actualFile;
             for (File file : fileList) {
-                FileCompare comparer = new FileCompare(file);
+                FileCompare comparer = new FileCompare(new File[]{file});
                 comparer.resolveConflict();
             }
         }

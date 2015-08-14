@@ -47,10 +47,9 @@ public class FileCompare {
     private final SyncFile syncFile;
     private final File[] files;
 
-    public FileCompare(File file) {
+    public FileCompare(File[] files) {
         this.syncFile = null;
-        this.files = new File[1];
-        files[0] = file;
+        this.files = files;
     }
 
     public FileCompare(SyncFile syncFile, File[] files) {
@@ -75,11 +74,10 @@ public class FileCompare {
             return SyncAction.Added;
         }
         for (File file : files) {
-            if (file == null) {
+            if (!file.exists()) {
                 return SyncAction.Removed;
-            } else if (file.lastModified() != syncFile.getLastModified()) {
-                return SyncAction.Modified;
-            } else if (file.length() != syncFile.getSize()) {
+            } else if (file.lastModified() != syncFile.getLastModified()
+                    || file.length() != syncFile.getSize()) {
                 return SyncAction.Modified;
             }
         }
@@ -101,9 +99,9 @@ public class FileCompare {
 
         return action;
     }
-    
+
     private void addFiles() {
-        
+
     }
 
     private void removeFiles() throws IOException {
