@@ -91,6 +91,7 @@ public class FileCompare {
                 addFiles();
                 break;
             case Modified:
+                modifyFiles();
                 break;
             case Removed:
                 removeFiles();
@@ -100,15 +101,42 @@ public class FileCompare {
         return action;
     }
 
-    private void addFiles() {
-
+    private void addFiles() throws IOException {
+        File newFile = compareFiles();
+        for (File file : files) {
+            if (file != newFile) {
+                log.log(Level.FINE, "Copying {0} to {1}", new Object[]{newFile, file});
+                Files.copy(newFile.toPath(), file.toPath(), REPLACE_EXISTING, COPY_ATTRIBUTES);
+            }
+        }
     }
 
-    private void removeFiles() throws IOException {
+    private void modifyFiles() throws IOException {
+        File newFile = compareFiles();
         for (File file : files) {
-            Path source = Paths.get(file.getAbsolutePath());
-            log.log(Level.FINE, "Removing {0}", source);
-            Files.deleteIfExists(source);
+            if (file != newFile) {
+                log.log(Level.FINE, "Copying {0} to {1}", new Object[]{newFile, file});
+                Files.copy(newFile.toPath(), file.toPath(), REPLACE_EXISTING, COPY_ATTRIBUTES);
+            }
+        }
+        syncFile.setSize(newFile.length());
+        syncFile.setLastModified(newFile.lastModified());
+    }
+
+    protected File compareFiles() {
+        File latest = files[0];
+        for (File file : files) {
+            if (file.lastModified() > latest.lastModified()) {
+                latest = file;
+            }
+        }
+        return latest;
+    }
+
+    private void removeFiles() {
+        for (File file : files) {
+            log.log(Level.FINE, "Removing {0}", file);
+            file.delete();
         }
     }
 }
