@@ -311,6 +311,12 @@ public class SettingsUI extends JFrame implements ActionListener {
     private javax.swing.JLabel versionLabel;
     // End of variables declaration//GEN-END:variables
 
+    /**
+     * Update the current sync status
+     *
+     * @param syncing
+     * @param percent
+     */
     public void updateSyncStatus(boolean syncing, double percent) {
         if (syncing) {
             syncButton.setText("Pause Sync");
@@ -321,6 +327,11 @@ public class SettingsUI extends JFrame implements ActionListener {
         pack();
     }
 
+    /**
+     * Update the current pause status
+     *
+     * @param paused
+     */
     public void updatePauseStatus(boolean paused) {
         if (paused) {
             pauseButton.setText("Restart Schedule");
@@ -332,7 +343,7 @@ public class SettingsUI extends JFrame implements ActionListener {
 
     private void updateIndexes() {
         listModel.clear();
-        
+
         for (SyncIndex index : syncIndexes) {
             listModel.addElement(index);
         }

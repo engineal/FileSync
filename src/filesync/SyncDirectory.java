@@ -23,24 +23,68 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
+ * Stores the last state of a directory and all files inside, so that it is
+ * known when comparing directories
  *
  * @author Aaron Lucia
- * @version Dec 17, 2014
+ * @version Aug 14, 2015
  */
 public class SyncDirectory extends SyncFile implements Collection<SyncFile> {
 
     private final List<SyncFile> files;
 
+    /**
+     * Create a new sync directory from an existing file
+     *
+     * @param file the file to create the directory from
+     */
     public SyncDirectory(File file) {
-        super(file);
+        this(file, false);
+    }
+
+    /**
+     * Create a new sync directory from an existing file, where the file has
+     * been added
+     *
+     * @param file the file to create the directory from
+     * @param added if the file was just added
+     */
+    public SyncDirectory(File file, boolean added) {
+        super(file, added);
         files = new ArrayList<>();
     }
-    
+
+    /**
+     * Create a new sync directory from known attributes
+     *
+     * @param name
+     * @param size
+     * @param lastModified
+     */
     public SyncDirectory(String name, long size, long lastModified) {
-        super(name, size, lastModified);
+        this(name, size, lastModified, false);
+    }
+
+    /**
+     * Create a new sync directory from known attributes, where the file has
+     * been added
+     *
+     * @param name
+     * @param size
+     * @param lastModified
+     * @param added if the file was just added
+     */
+    public SyncDirectory(String name, long size, long lastModified, boolean added) {
+        super(name, size, lastModified, added);
         files = new ArrayList<>();
     }
-    
+
+    /**
+     * Get the number of files and directories in this directory, including sub
+     * directories
+     *
+     * @return file count
+     */
     public int fileCount() {
         int count = 0;
         for (SyncFile file : files) {

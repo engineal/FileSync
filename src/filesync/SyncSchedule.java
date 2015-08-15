@@ -19,6 +19,7 @@ package filesync;
 import java.io.Serializable;
 
 /**
+ * Holds the schedule to sync
  *
  * @author Aaron Lucia
  * @version Jul 23, 2015
@@ -28,17 +29,30 @@ public class SyncSchedule implements Serializable {
     private boolean enabled;
     private SyncInterval interval;
     private int repeat;
-    
+
+    /**
+     * Create the default schedule
+     */
     public SyncSchedule() {
         enabled = false;
         interval = SyncInterval.HOUR;
         repeat = 1;
     }
 
+    /**
+     * Check if the schedule is enabled
+     *
+     * @return
+     */
     public boolean isEnabled() {
         return enabled;
     }
 
+    /**
+     * Set if the schedule is enabled
+     *
+     * @param enabled
+     */
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
@@ -59,7 +73,7 @@ public class SyncSchedule implements Serializable {
         this.repeat = repeat;
     }
 
-    public int getDelayM() {
-        return interval.getDelayM() * repeat;
+    public int getDelayS() {
+        return interval.getDelayS() * repeat;
     }
 }

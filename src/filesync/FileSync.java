@@ -45,6 +45,11 @@ import javax.swing.UnsupportedLookAndFeelException;
  */
 public class FileSync implements SyncListener, UIListener {
 
+    /**
+     * The current version of the program
+     *
+     * TODO: To be replaced by version in manifest (or elsewhere)
+     */
     public static final String VERSION = "1.0.DEV";
     private static final Logger log = Logger.getLogger(FileSync.class.getName());
     private static FileSync instance;
@@ -95,7 +100,7 @@ public class FileSync implements SyncListener, UIListener {
         } catch (IOException | SecurityException ex) {
             log.log(Level.SEVERE, ex.getMessage(), ex);
         }
-        
+
         this.syncIndexes = syncIndexes;
     }
 
@@ -151,6 +156,9 @@ public class FileSync implements SyncListener, UIListener {
         }
     }
 
+    /**
+     * Start the directory crawl on every sync index
+     */
     public synchronized void sync() {
         for (SyncIndex index : syncIndexes) {
             index.getSyncEngine().startCrawl();

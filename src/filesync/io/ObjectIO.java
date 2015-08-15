@@ -25,6 +25,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 /**
+ * Handles index IO through Java's default Object serialization
  *
  * @author Aaron Lucia
  * @version Jul 23, 2015
@@ -32,7 +33,12 @@ import java.io.ObjectOutputStream;
 public class ObjectIO implements IndexIO {
 
     private final File file;
-    
+
+    /**
+     * Create a new Object file interface
+     *
+     * @param file
+     */
     public ObjectIO(File file) {
         this.file = file;
     }

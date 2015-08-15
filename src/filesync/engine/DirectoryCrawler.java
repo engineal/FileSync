@@ -76,9 +76,9 @@ public class DirectoryCrawler implements Runnable {
             for (File file : dir.toFile().listFiles()) {
                 if (!containsFile(directory, file)) {
                     if (file.isDirectory()) {
-                        directory.add(new SyncDirectory(file));
+                        directory.add(new SyncDirectory(file, true));
                     } else {
-                        directory.add(new SyncFile(file));
+                        directory.add(new SyncFile(file, true));
                     }
                 }
             }

@@ -67,22 +67,23 @@ public class SyncEngine {
     public CrawlState getState() {
         return crawl.getState();
     }
-    
+
     public void startCrawl() {
         crawl.startCrawl();
     }
-    
+
     public void pauseCrawl() {
         crawl.pauseCrawl();
     }
-    
+
     public void stopCrawl() {
         crawl.stopCrawl();
     }
 
     /**
+     * Add a listener
      *
-     * @param listener
+     * @param listener the listener to add
      */
     public synchronized void addStatusListener(SyncListener listener) {
         if (!_syncListeners.contains(listener)) {
@@ -91,8 +92,9 @@ public class SyncEngine {
     }
 
     /**
+     * Remove a listener
      *
-     * @param listener
+     * @param listener the listener to remove
      */
     public synchronized void removeStatusListener(SyncListener listener) {
         _syncListeners.remove(listener);

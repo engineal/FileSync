@@ -31,6 +31,9 @@ import static org.junit.Assert.*;
  */
 public class SyncEngineTest {
     
+    /**
+     * Create a new test
+     */
     public SyncEngineTest() {
     }
     

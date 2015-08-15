@@ -17,9 +17,7 @@
 package filesync.engine;
 
 import filesync.SyncFile;
-import static filesync.engine.FileCompare.SyncAction.Modified;
-import static filesync.engine.FileCompare.SyncAction.Removed;
-import static filesync.engine.FileCompare.SyncAction.Unchanged;
+import filesync.engine.FileCompare.SyncAction;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -48,6 +46,11 @@ public class FileCompareTest {
     private static final String NEW_TEST_CONTENT = "Nam interdum augue sapien. Aenean venenatis sodales nibh, in pellentesque metus porta vel cras amet.";
     private static final long LAST_MODIFIED = System.currentTimeMillis() - System.currentTimeMillis() % 1000;
 
+    /**
+     * Generate lists of files to run the tests against
+     *
+     * @return
+     */
     @Parameters
     public static Collection<File[][]> generateFiles() {
         final int[] testCases = {1, 2, 3, 10};
@@ -64,6 +67,9 @@ public class FileCompareTest {
         return fileCollection;
     }
 
+    /**
+     * Create directory to run tests in
+     */
     @BeforeClass
     public static void setUpClass() {
         if (!testDir.exists()) {
@@ -75,6 +81,9 @@ public class FileCompareTest {
         }
     }
 
+    /**
+     * Remove directory used by tests
+     */
     @AfterClass
     public static void tearDownClass() {
         if (testDir.exists()) {
@@ -88,11 +97,19 @@ public class FileCompareTest {
 
     private final File[] files;
 
+    /**
+     * Create a new test with specified list of files
+     *
+     * @param files the files to test against
+     */
     public FileCompareTest(File[] files) {
         this.files = files;
         assertTrue(files.length > 0);
     }
 
+    /**
+     * Create the files to test against
+     */
     @Before
     public void setUp() {
         for (File testFile : files) {
@@ -105,6 +122,9 @@ public class FileCompareTest {
         }
     }
 
+    /**
+     * Remove the files used by tests
+     */
     @After
     public void tearDown() {
         for (File testFile : files) {
@@ -118,12 +138,26 @@ public class FileCompareTest {
      * Test of getAction method, of class FileCompare.
      */
     @Test
+    public void testGetActionAdded() {
+        for (int i = 1; i < files.length; i++) {
+            assertTrue(files[i].delete());
+        }
+
+        SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED, true);
+        FileCompare instance = new FileCompare(syncFile, files);
+        assertEquals(SyncAction.Added, instance.getAction());
+    }
+
+    /**
+     * Test of getAction method, of class FileCompare.
+     */
+    @Test
     public void testGetActionRemoved() {
         assertTrue(files[0].delete());
 
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(Removed, instance.getAction());
+        assertEquals(SyncAction.Removed, instance.getAction());
     }
 
     /**
@@ -139,7 +173,7 @@ public class FileCompareTest {
 
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(Modified, instance.getAction());
+        assertEquals(SyncAction.Modified, instance.getAction());
     }
 
     /**
@@ -149,7 +183,27 @@ public class FileCompareTest {
     public void testGetActionUnchanged() {
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(Unchanged, instance.getAction());
+        assertEquals(SyncAction.Unchanged, instance.getAction());
+    }
+
+    /**
+     * Test of resolveConflict method, of class FileCompare.
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    public void testResolveConflictAdded() throws Exception {
+        for (int i = 1; i < files.length; i++) {
+            assertTrue(files[i].delete());
+        }
+
+        SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED, true);
+        FileCompare instance = new FileCompare(syncFile, files);
+        assertEquals(SyncAction.Added, instance.resolveConflict());
+
+        for (File testFile : files) {
+            assertTrue(testFile.exists());
+        }
     }
 
     /**
@@ -163,7 +217,7 @@ public class FileCompareTest {
 
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(Removed, instance.resolveConflict());
+        assertEquals(SyncAction.Removed, instance.resolveConflict());
 
         for (File testFile : files) {
             assertFalse(testFile.exists());
@@ -186,7 +240,7 @@ public class FileCompareTest {
 
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(Modified, instance.resolveConflict());
+        assertEquals(SyncAction.Modified, instance.resolveConflict());
 
         for (File testFile : files) {
             assertEquals(NEW_TEST_CONTENT.getBytes().length, testFile.length());
@@ -199,7 +253,7 @@ public class FileCompareTest {
             }
         }
 
-        assertEquals(Unchanged, instance.getAction());
+        assertEquals(SyncAction.Unchanged, instance.getAction());
     }
 
     /**
@@ -211,7 +265,7 @@ public class FileCompareTest {
     public void testResolveConflictUnchanged() throws Exception {
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(Unchanged, instance.resolveConflict());
+        assertEquals(SyncAction.Unchanged, instance.resolveConflict());
     }
 
     /**

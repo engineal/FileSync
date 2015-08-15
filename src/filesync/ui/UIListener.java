@@ -25,5 +25,10 @@ import java.util.EventListener;
  */
 public interface UIListener extends EventListener {
 
+    /**
+     * Called when an action is performed
+     *
+     * @param event The event that occurred
+     */
     public void actionPerformed(UIEvent event);
 }

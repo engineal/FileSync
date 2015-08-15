@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * The top directory of a sync tree, stores the paths to all sync locations
  *
  * @author Aaron Lucia
  * @version Dec 17, 2014
@@ -33,13 +34,21 @@ public class SyncIndex extends SyncDirectory {
     private final SyncSchedule schedule;
     private final transient SyncEngine engine;
 
+    /**
+     * Create a new sync index with specified name
+     *
+     * @param name
+     */
     public SyncIndex(String name) {
-        super(name, 0, 0);
-        this.directories = new ArrayList<>();
-        schedule = new SyncSchedule();
-        engine = new SyncEngine(this);
+        this(name, new ArrayList<>());
     }
-    
+
+    /**
+     * Create a new sync index with specified name and list of directories
+     *
+     * @param name
+     * @param directories
+     */
     public SyncIndex(String name, List<Path> directories) {
         super(name, 0, 0);
         this.directories = directories;
@@ -47,14 +56,29 @@ public class SyncIndex extends SyncDirectory {
         engine = new SyncEngine(this);
     }
 
+    /**
+     * Get the list of directories
+     *
+     * @return
+     */
     public List<Path> getDirectories() {
         return directories;
     }
-    
+
+    /**
+     * Get the sync schedule
+     *
+     * @return
+     */
     public SyncSchedule getSchedule() {
         return schedule;
     }
-    
+
+    /**
+     * Get the sync engine
+     *
+     * @return
+     */
     public SyncEngine getSyncEngine() {
         return engine;
     }

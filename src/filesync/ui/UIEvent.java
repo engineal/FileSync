@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package filesync.ui;
 
 import java.util.EventObject;
@@ -25,13 +24,25 @@ import java.util.EventObject;
  * @version Dec 19, 2014
  */
 public class UIEvent extends EventObject {
+
     private final UIAction action;
 
+    /**
+     * Create a new UI event
+     *
+     * @param source object event originated from
+     * @param action action that caused the event
+     */
     public UIEvent(Object source, UIAction action) {
         super(source);
         this.action = action;
     }
 
+    /**
+     * Get the action that caused the event
+     *
+     * @return action that caused the event
+     */
     public UIAction getAction() {
         return action;
     }

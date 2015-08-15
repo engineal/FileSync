@@ -21,12 +21,27 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * The interface that defines basic calls to load and save a index
  *
  * @author Aaron Lucia
  * @version Jul 23, 2015
  */
 public interface IndexIO {
 
+    /**
+     * Loads the sync index from a file
+     *
+     * @return the loaded sync index
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public abstract SyncIndex load() throws IOException, ClassNotFoundException;
+
+    /**
+     * Saves the sync index to a file
+     *
+     * @param index the index to save
+     * @throws IOException
+     */
     public abstract void save(SyncIndex index) throws IOException;
 }

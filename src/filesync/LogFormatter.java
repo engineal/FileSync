@@ -24,6 +24,7 @@ import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
 /**
+ * Formats the log messages with date and time
  *
  * @author Aaron Lucia
  * @version Dec 17, 2014

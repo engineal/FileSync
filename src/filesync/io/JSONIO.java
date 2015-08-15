@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package filesync.io;
 
 import com.google.gson.Gson;
@@ -25,6 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 /**
+ * Handles index IO through JSON
  *
  * @author Aaron Lucia
  * @version Jul 23, 2015
@@ -32,7 +32,12 @@ import java.io.IOException;
 public class JSONIO implements IndexIO {
 
     private final File file;
-    
+
+    /**
+     * Create a new JSON file interface
+     *
+     * @param file
+     */
     public JSONIO(File file) {
         this.file = file;
     }

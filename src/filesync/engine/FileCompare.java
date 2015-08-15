@@ -44,6 +44,9 @@ public class FileCompare {
     }
 
     public SyncAction getAction() {
+        if (syncFile.isAdded()) {
+            return SyncAction.Added;
+        }
         for (File file : files) {
             if (!file.exists()) {
                 return SyncAction.Removed;
@@ -58,6 +61,10 @@ public class FileCompare {
     public SyncAction resolveConflict() throws IOException {
         SyncAction action = getAction();
         switch (action) {
+            case Added:
+                modifyFiles();
+                syncFile.clearAdded();
+                break;
             case Modified:
                 modifyFiles();
                 break;
@@ -100,6 +107,6 @@ public class FileCompare {
 
     public enum SyncAction {
 
-        Modified, Removed, Unchanged
+        Added, Modified, Removed, Unchanged
     }
 }

@@ -31,28 +31,33 @@ import static org.junit.Assert.*;
  * @author Aaron Lucia
  */
 public class DirectoryCrawlerTest {
-    
+
+    /**
+     * Create a new test for DirectoryCrawler
+     */
     public DirectoryCrawlerTest() {
     }
-    
+
     @BeforeClass
     public static void setUpClass() {
     }
-    
+
     @AfterClass
     public static void tearDownClass() {
     }
-    
+
     @Before
     public void setUp() {
     }
-    
+
     @After
     public void tearDown() {
     }
 
     /**
      * Test of compareDirs method, of class DirectoryCrawler.
+     *
+     * @throws java.lang.Exception
      */
     @Test
     public void testCompareDirs() throws Exception {

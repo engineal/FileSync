@@ -17,32 +17,66 @@
 package filesync;
 
 /**
+ * The time intervals that can be used for the sync schedule
  *
  * @author Aaron Lucia
  * @version Jul 23, 2015
  */
 public enum SyncInterval {
 
+    /**
+     * One minute, 60 seconds
+     */
     MINUTE("Minute", 60),
-    HOUR("Hour", 60 * 60),
-    DAY("Day", 60 * 60 * 24),
-    WEEK("Day", 60 * 60 * 24 * 7),
-    MONTH("Month", 60 * 60 * 24 * 30),
-    YEAR("Year", 60 * 60 * 24 * 30 * 365);
-    
+    /**
+     * One hour, 3600 seconds
+     */
+    HOUR("Hour", 3600),
+    /**
+     * One day, 86400 seconds
+     */
+    DAY("Day", 86400),
+    /**
+     * One week, 604800 seconds
+     */
+    WEEK("Day", 604800),
+    /**
+     * One month, 2592000 seconds
+     */
+    MONTH("Month", 2592000),
+    /**
+     * One year, 946080000 seconds
+     */
+    YEAR("Year", 946080000);
+
     private final String displayText;
-    private final int delayM;
-    
-    private SyncInterval(String displayText, int delayM) {
+    private final int delayS;
+
+    private SyncInterval(String displayText, int delayS) {
         this.displayText = displayText;
-        this.delayM = delayM;
+        this.delayS = delayS;
     }
 
+    /**
+     * Get the text to display associated with this interval
+     *
+     * @return
+     */
     public String getDisplayText() {
         return displayText;
     }
 
-    public int getDelayM() {
-        return delayM;
+    /**
+     * Get the seconds associated with this interval
+     *
+     * @return
+     */
+    public int getDelayS() {
+        return delayS;
+    }
+
+    @Override
+    public String toString() {
+        return displayText;
     }
 }

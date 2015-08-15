@@ -24,5 +24,11 @@ import java.util.EventListener;
  * @version Dec 16, 2014
  */
 public interface SyncListener extends EventListener {
+
+    /**
+     * Called when a status was updated
+     *
+     * @param event the event associated with the call
+     */
     public void statusUpdated(SyncEvent event);
 }
