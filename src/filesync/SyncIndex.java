@@ -17,7 +17,7 @@
 package filesync;
 
 import filesync.engine.SyncEngine;
-import java.nio.file.Path;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,8 +30,8 @@ import java.util.List;
 public class SyncIndex extends SyncDirectory {
 
     public static final long serialVersionUID = 1;
-    private final List<Path> directories;
-    private final SyncSchedule schedule;
+    private final List<File> directories;
+    private SyncSchedule schedule;
     private final transient SyncEngine engine;
 
     /**
@@ -49,7 +49,7 @@ public class SyncIndex extends SyncDirectory {
      * @param name
      * @param directories
      */
-    public SyncIndex(String name, List<Path> directories) {
+    public SyncIndex(String name, List<File> directories) {
         super(name, 0, 0);
         this.directories = directories;
         schedule = new SyncSchedule();
@@ -61,7 +61,7 @@ public class SyncIndex extends SyncDirectory {
      *
      * @return
      */
-    public List<Path> getDirectories() {
+    public List<File> getDirectories() {
         return directories;
     }
 
@@ -72,6 +72,15 @@ public class SyncIndex extends SyncDirectory {
      */
     public SyncSchedule getSchedule() {
         return schedule;
+    }
+
+    /**
+     * Set the sync schedule
+     *
+     * @param schedule
+     */
+    public void setSchedule(SyncSchedule schedule) {
+        this.schedule = schedule;
     }
 
     /**

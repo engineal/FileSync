@@ -19,6 +19,7 @@ package filesync.engine;
 import filesync.FileSync;
 import filesync.SyncIndex;
 import filesync.engine.DirectoryCrawler.CrawlState;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -53,8 +54,8 @@ public class SyncEngine {
         try {
             WatchService watcher = FileSystems.getDefault().newWatchService();
 
-            for (Path directory : index.getDirectories()) {
-                WatchKey key = directory.register(watcher,
+            for (File directory : index.getDirectories()) {
+                WatchKey key = directory.toPath().register(watcher,
                         ENTRY_CREATE,
                         ENTRY_DELETE,
                         ENTRY_MODIFY);

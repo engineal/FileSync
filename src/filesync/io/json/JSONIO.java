@@ -14,10 +14,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package filesync.io;
+package filesync.io.json;
 
+import filesync.io.json.SyncDirectorySerializer;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import filesync.SyncDirectory;
 import filesync.SyncIndex;
+import filesync.io.IndexIO;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -45,16 +49,20 @@ public class JSONIO implements IndexIO {
     @Override
     public SyncIndex load() throws IOException, ClassNotFoundException {
         try (FileReader reader = new FileReader(file)) {
-            Gson json = new Gson();
-            return json.fromJson(reader, SyncIndex.class);
+            GsonBuilder gson = new GsonBuilder();
+            gson.registerTypeAdapter(SyncIndex.class, new SyncIndexSerializer());
+            gson.registerTypeAdapter(SyncDirectory.class, new SyncDirectorySerializer());
+            return gson.create().fromJson(reader, SyncIndex.class);
         }
     }
 
     @Override
     public void save(SyncIndex index) throws IOException {
         try (FileWriter reader = new FileWriter(file)) {
-            Gson json = new Gson();
-            reader.write(json.toJson(index));
+            GsonBuilder gson = new GsonBuilder();
+            gson.registerTypeAdapter(SyncIndex.class, new SyncIndexSerializer());
+            gson.registerTypeAdapter(SyncDirectory.class, new SyncDirectorySerializer());
+            reader.write(gson.create().toJson(index));
         }
     }
 }

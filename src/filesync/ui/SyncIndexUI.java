@@ -20,10 +20,7 @@ import filesync.SyncIndex;
 import filesync.SyncInterval;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.nio.file.Path;
-import javax.swing.ButtonModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -323,14 +320,14 @@ public class SyncIndexUI extends JFrame implements ActionListener, ChangeListene
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         chooser.setAcceptAllFileFilterUsed(false);
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            index.getDirectories().add(chooser.getSelectedFile().toPath());
+            index.getDirectories().add(chooser.getSelectedFile());
         }
         updateDirectories();
     }//GEN-LAST:event_addButtonActionPerformed
 
     private void removeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeButtonActionPerformed
-        if (directoriesList instanceof Path) {
-            index.getDirectories().remove((Path) directoriesList.getSelectedValue());
+        if (directoriesList.getSelectedValue() instanceof File) {
+            index.getDirectories().remove((File) directoriesList.getSelectedValue());
         }
         updateDirectories();
     }//GEN-LAST:event_removeButtonActionPerformed
@@ -395,7 +392,7 @@ public class SyncIndexUI extends JFrame implements ActionListener, ChangeListene
     private void updateDirectories() {
         listModel.clear();
 
-        for (Path path : index.getDirectories()) {
+        for (File path : index.getDirectories()) {
             listModel.addElement(path);
         }
     }

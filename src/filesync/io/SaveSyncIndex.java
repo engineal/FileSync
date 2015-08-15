@@ -16,6 +16,8 @@
  */
 package filesync.io;
 
+import filesync.io.object.ObjectIO;
+import filesync.io.json.JSONIO;
 import filesync.SyncIndex;
 import java.io.File;
 import java.io.IOException;

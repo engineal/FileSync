@@ -14,9 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package filesync.io;
+package filesync.io.object;
 
 import filesync.SyncIndex;
+import filesync.io.IndexIO;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

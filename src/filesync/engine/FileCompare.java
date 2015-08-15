@@ -50,7 +50,10 @@ public class FileCompare {
         for (File file : files) {
             if (!file.exists()) {
                 return SyncAction.Removed;
-            } else if (file.lastModified() != syncFile.getLastModified()
+            }
+        }
+        for (File file : files) {
+            if (file.lastModified() != syncFile.getLastModified()
                     || file.length() != syncFile.getSize()) {
                 return SyncAction.Modified;
             }
@@ -80,8 +83,19 @@ public class FileCompare {
         File newFile = compareFiles();
         for (File file : files) {
             if (file != newFile) {
-                log.log(Level.FINE, "Copying {0} to {1}", new Object[]{newFile, file});
-                Files.copy(newFile.toPath(), file.toPath(), REPLACE_EXISTING, COPY_ATTRIBUTES);
+                if (newFile.isDirectory()) {
+                    if (!file.exists()) {
+                        log.log(Level.FINE, "Creating {0}", new Object[]{file});
+                        file.mkdirs();
+                    }
+                } else {
+                    if (!file.getParentFile().exists()) {
+                        log.log(Level.FINE, "Creating {0}", new Object[]{file.getParentFile()});
+                        file.mkdirs();
+                    }
+                    log.log(Level.FINE, "Copying {0} to {1}", new Object[]{newFile, file});
+                    Files.copy(newFile.toPath(), file.toPath(), REPLACE_EXISTING, COPY_ATTRIBUTES);
+                }
             }
         }
         syncFile.setSize(newFile.length());

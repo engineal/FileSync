@@ -17,7 +17,7 @@
 package filesync.engine;
 
 import filesync.SyncDirectory;
-import java.nio.file.Path;
+import java.io.File;
 import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -62,7 +62,7 @@ public class DirectoryCrawlerTest {
     @Test
     public void testCompareDirs() throws Exception {
         SyncDirectory directory = null;
-        List<Path> directories = null;
+        List<File> directories = null;
         DirectoryCrawler instance = null;
         instance.compareDirs(directory, directories);
         // TODO review the generated test code and remove the default call to fail.

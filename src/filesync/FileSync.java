@@ -130,10 +130,10 @@ public class FileSync implements SyncListener, UIListener {
 
     @Override
     public void statusUpdated(SyncEvent event) {
-        if (!event.isSyncing()) {
+        if (event.isDone()) {
             try {
-                SaveSyncIndex.save(new File("Data\\" + event.getIndex().getName() + ".json"), event.getIndex());
-                log.log(Level.SEVERE, "Saved {0}", event.getIndex());
+                SaveSyncIndex.save(new File("Data", event.getIndex().getName() + ".json"), event.getIndex());
+                log.log(Level.FINE, "Saved {0}", event.getIndex());
             } catch (IOException ex) {
                 log.log(Level.SEVERE, ex.getMessage(), ex);
             }
@@ -161,6 +161,7 @@ public class FileSync implements SyncListener, UIListener {
      */
     public synchronized void sync() {
         for (SyncIndex index : syncIndexes) {
+            index.getSyncEngine().addStatusListener(this);
             index.getSyncEngine().startCrawl();
         }
     }
