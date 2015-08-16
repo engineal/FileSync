@@ -16,14 +16,10 @@
  */
 package filesync;
 
-import filesync.engine.SyncListener;
-import filesync.engine.SyncEvent;
 import filesync.io.SaveSyncIndex;
 import filesync.ui.Console;
 import filesync.ui.FileSyncSystemTray;
 import filesync.ui.SettingsUI;
-import filesync.ui.UIEvent;
-import filesync.ui.UIListener;
 import java.awt.AWTException;
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +39,7 @@ import javax.swing.UnsupportedLookAndFeelException;
  * @author Aaron Lucia
  * @version Dec 16, 2014
  */
-public class FileSync implements SyncListener, UIListener {
+public class FileSync {
 
     /**
      * The current version of the program
@@ -110,8 +106,7 @@ public class FileSync implements SyncListener, UIListener {
         if (console.isTray()) {
             java.awt.EventQueue.invokeLater(() -> {
                 try {
-                    FileSyncSystemTray tray = new FileSyncSystemTray();
-                    tray.addUIListener(this);
+                    FileSyncSystemTray tray = new FileSyncSystemTray(syncIndexes);
                     tray.setVisible(true);
                 } catch (AWTException ex) {
                     log.log(Level.SEVERE, ex.getMessage(), ex);
@@ -122,47 +117,8 @@ public class FileSync implements SyncListener, UIListener {
         if (console.isSettings()) {
             java.awt.EventQueue.invokeLater(() -> {
                 SettingsUI settings = new SettingsUI(syncIndexes);
-                settings.addUIListener(this);
                 settings.setVisible(true);
             });
-        }
-    }
-
-    @Override
-    public void statusUpdated(SyncEvent event) {
-        if (event.isDone()) {
-            try {
-                SaveSyncIndex.save(new File("Data", event.getIndex().getName() + ".json"), event.getIndex());
-                log.log(Level.FINE, "Saved {0}", event.getIndex());
-            } catch (IOException ex) {
-                log.log(Level.SEVERE, ex.getMessage(), ex);
-            }
-        }
-    }
-
-    @Override
-    public void actionPerformed(UIEvent event) {
-        switch (event.getAction()) {
-            case Settings:
-                SettingsUI settings = new SettingsUI(syncIndexes);
-                settings.addUIListener(this);
-                settings.setVisible(true);
-                break;
-            case Sync:
-                sync();
-                break;
-            case Pause:
-                break;
-        }
-    }
-
-    /**
-     * Start the directory crawl on every sync index
-     */
-    public synchronized void sync() {
-        for (SyncIndex index : syncIndexes) {
-            index.getSyncEngine().addStatusListener(this);
-            index.getSyncEngine().startCrawl();
         }
     }
 }

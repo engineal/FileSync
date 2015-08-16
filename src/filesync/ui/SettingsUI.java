@@ -18,14 +18,17 @@ package filesync.ui;
 
 import filesync.FileSync;
 import filesync.SyncIndex;
-import static filesync.ui.UIAction.Pause;
-import static filesync.ui.UIAction.Sync;
+import filesync.engine.DirectoryCrawler;
+import filesync.engine.DirectoryCrawler.CrawlState;
+import filesync.engine.SyncEvent;
+import filesync.engine.SyncListener;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
-import java.util.ArrayList;
 import java.util.List;
-import javax.swing.DefaultListModel;
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -34,8 +37,6 @@ import javax.swing.JFrame;
 public class SettingsUI extends JFrame implements ActionListener {
 
     private final List<SyncIndex> syncIndexes;
-    private final List<UIListener> _uiListeners;
-    private final DefaultListModel listModel;
 
     /**
      * Creates new form FileSyncUI
@@ -43,12 +44,12 @@ public class SettingsUI extends JFrame implements ActionListener {
      * @param syncIndexes
      */
     public SettingsUI(List<SyncIndex> syncIndexes) {
-        listModel = new DefaultListModel();
         initComponents();
+        indexesListPanel.setLayout(new BoxLayout(indexesListPanel, javax.swing.BoxLayout.Y_AXIS));
         this.syncIndexes = syncIndexes;
-        _uiListeners = new ArrayList<>();
-        versionLabel.setText(FileSync.VERSION);
         updateIndexes();
+
+        versionLabel.setText(FileSync.VERSION);
     }
 
     /**
@@ -63,41 +64,31 @@ public class SettingsUI extends JFrame implements ActionListener {
         tabbedPane = new javax.swing.JTabbedPane();
         indexesPanel = new javax.swing.JPanel();
         addButton = new javax.swing.JButton();
-        modifyButton = new javax.swing.JButton();
-        removeButton = new javax.swing.JButton();
         syncButton = new javax.swing.JButton();
-        pauseButton = new javax.swing.JButton();
         indexesScrollPane = new javax.swing.JScrollPane();
-        indexesList = new javax.swing.JList(listModel);
-        syncProgressBar = new javax.swing.JProgressBar();
+        indexesListPanel = new javax.swing.JPanel();
         aboutPanel = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         versionLabel = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         exitButton = new javax.swing.JButton();
-        saveButton = new javax.swing.JButton();
-        cancelButton = new javax.swing.JButton();
+        closeButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("FileSync");
 
-        addButton.setText("Add");
+        addButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/filesync/ui/images/plus-2x.png"))); // NOI18N
+        addButton.setToolTipText("Add");
+        addButton.setBorder(null);
+        addButton.setContentAreaFilled(false);
         addButton.addActionListener(this);
 
-        modifyButton.setText("Modify");
-        modifyButton.addActionListener(this);
-
-        removeButton.setText("Remove");
-        removeButton.addActionListener(this);
-
-        syncButton.setText("Sync");
+        syncButton.setText("Sync All");
         syncButton.addActionListener(this);
 
-        pauseButton.setText("Pause All");
-        pauseButton.addActionListener(this);
-
-        indexesScrollPane.setViewportView(indexesList);
+        indexesListPanel.setBackground(new java.awt.Color(255, 255, 255));
+        indexesScrollPane.setViewportView(indexesListPanel);
 
         javax.swing.GroupLayout indexesPanelLayout = new javax.swing.GroupLayout(indexesPanel);
         indexesPanel.setLayout(indexesPanelLayout);
@@ -106,18 +97,11 @@ public class SettingsUI extends JFrame implements ActionListener {
             .addGroup(indexesPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(indexesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(syncProgressBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(indexesScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 475, Short.MAX_VALUE)
+                    .addComponent(indexesScrollPane)
                     .addGroup(indexesPanelLayout.createSequentialGroup()
                         .addComponent(addButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(modifyButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(removeButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(syncButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(pauseButton)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 389, Short.MAX_VALUE)
+                        .addComponent(syncButton)))
                 .addContainerGap())
         );
         indexesPanelLayout.setVerticalGroup(
@@ -126,14 +110,9 @@ public class SettingsUI extends JFrame implements ActionListener {
                 .addContainerGap()
                 .addGroup(indexesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(addButton)
-                    .addComponent(removeButton)
-                    .addComponent(modifyButton)
-                    .addComponent(pauseButton)
                     .addComponent(syncButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(indexesScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(syncProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(indexesScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 381, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -184,11 +163,8 @@ public class SettingsUI extends JFrame implements ActionListener {
         exitButton.setText("Exit");
         exitButton.addActionListener(this);
 
-        saveButton.setText("Save");
-        saveButton.addActionListener(this);
-
-        cancelButton.setText("Cancel");
-        cancelButton.addActionListener(this);
+        closeButton.setText("Close");
+        closeButton.addActionListener(this);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -198,9 +174,7 @@ public class SettingsUI extends JFrame implements ActionListener {
                 .addContainerGap()
                 .addComponent(exitButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(saveButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(cancelButton)
+                .addComponent(closeButton)
                 .addContainerGap())
             .addComponent(tabbedPane)
         );
@@ -210,8 +184,7 @@ public class SettingsUI extends JFrame implements ActionListener {
                 .addComponent(tabbedPane)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cancelButton)
-                    .addComponent(saveButton)
+                    .addComponent(closeButton)
                     .addComponent(exitButton))
                 .addContainerGap())
         );
@@ -225,156 +198,72 @@ public class SettingsUI extends JFrame implements ActionListener {
         if (evt.getSource() == addButton) {
             SettingsUI.this.addButtonActionPerformed(evt);
         }
-        else if (evt.getSource() == modifyButton) {
-            SettingsUI.this.modifyButtonActionPerformed(evt);
-        }
-        else if (evt.getSource() == removeButton) {
-            SettingsUI.this.removeButtonActionPerformed(evt);
-        }
         else if (evt.getSource() == syncButton) {
             SettingsUI.this.syncButtonActionPerformed(evt);
-        }
-        else if (evt.getSource() == pauseButton) {
-            SettingsUI.this.pauseButtonActionPerformed(evt);
         }
         else if (evt.getSource() == exitButton) {
             SettingsUI.this.exitButtonActionPerformed(evt);
         }
-        else if (evt.getSource() == saveButton) {
-            SettingsUI.this.saveButtonActionPerformed(evt);
-        }
-        else if (evt.getSource() == cancelButton) {
-            SettingsUI.this.cancelButtonActionPerformed(evt);
+        else if (evt.getSource() == closeButton) {
+            SettingsUI.this.closeButtonActionPerformed(evt);
         }
     }// </editor-fold>//GEN-END:initComponents
 
-    private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
+    private void closeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeButtonActionPerformed
         dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
-    }//GEN-LAST:event_saveButtonActionPerformed
-
-    private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
-        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
-    }//GEN-LAST:event_cancelButtonActionPerformed
+    }//GEN-LAST:event_closeButtonActionPerformed
 
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-        SyncIndex index = new SyncIndex("New");
+        SyncIndex index = new SyncIndex("Name");
         syncIndexes.add(index);
-        SyncIndexUI indexUI = new SyncIndexUI(index);
-        indexUI.setVisible(true);
         updateIndexes();
+
+        IndexUI indexUI = new IndexUI(index);
+        indexUI.setVisible(true);
     }//GEN-LAST:event_addButtonActionPerformed
 
-    private void removeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeButtonActionPerformed
-        if (indexesList.getSelectedValue() instanceof SyncIndex) {
-            syncIndexes.remove((SyncIndex) indexesList.getSelectedValue());
-        }
-        updateIndexes();
-    }//GEN-LAST:event_removeButtonActionPerformed
-
     private void syncButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_syncButtonActionPerformed
-        fireUIEvent(Sync);
+        for (SyncIndex index : syncIndexes) {
+            index.getSyncEngine().startCrawl();
+        }
     }//GEN-LAST:event_syncButtonActionPerformed
 
     private void exitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitButtonActionPerformed
         System.exit(0);
     }//GEN-LAST:event_exitButtonActionPerformed
 
-    private void pauseButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pauseButtonActionPerformed
-        fireUIEvent(Pause);
-    }//GEN-LAST:event_pauseButtonActionPerformed
-
-    private void modifyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_modifyButtonActionPerformed
-        if (indexesList.getSelectedValue() instanceof SyncIndex) {
-            SyncIndexUI indexUI = new SyncIndexUI((SyncIndex) indexesList.getSelectedValue());
-            indexUI.setVisible(true);
-        }
-    }//GEN-LAST:event_modifyButtonActionPerformed
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel aboutPanel;
     private javax.swing.JButton addButton;
-    private javax.swing.JButton cancelButton;
+    private javax.swing.JButton closeButton;
     private javax.swing.JButton exitButton;
-    private javax.swing.JList indexesList;
+    private javax.swing.JPanel indexesListPanel;
     private javax.swing.JPanel indexesPanel;
     private javax.swing.JScrollPane indexesScrollPane;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JButton modifyButton;
-    private javax.swing.JButton pauseButton;
-    private javax.swing.JButton removeButton;
-    private javax.swing.JButton saveButton;
     private javax.swing.JButton syncButton;
-    private javax.swing.JProgressBar syncProgressBar;
     private javax.swing.JTabbedPane tabbedPane;
     private javax.swing.JLabel versionLabel;
     // End of variables declaration//GEN-END:variables
 
-    /**
-     * Update the current sync status
-     *
-     * @param syncing
-     * @param percent
-     */
-    public void updateSyncStatus(boolean syncing, double percent) {
-        if (syncing) {
-            syncButton.setText("Pause Sync");
-        } else {
-            syncButton.setText("Sync");
-        }
-        syncProgressBar.setValue((int) (percent * 100));
-        pack();
-    }
-
-    /**
-     * Update the current pause status
-     *
-     * @param paused
-     */
-    public void updatePauseStatus(boolean paused) {
-        if (paused) {
-            pauseButton.setText("Restart Schedule");
-        } else {
-            pauseButton.setText("Pause Schedule");
-        }
-        pack();
-    }
-
     private void updateIndexes() {
-        listModel.clear();
+        indexesListPanel.removeAll();
 
         for (SyncIndex index : syncIndexes) {
-            listModel.addElement(index);
+            IndexPanel panel = new IndexPanel(index);
+            panel.addActionListener((ActionEvent e) -> {
+                if (e.getActionCommand().equals("delete")
+                        && JOptionPane.showConfirmDialog(panel, "Are you sure you want to delete " + index.getName() + "?",
+                                "Are you sure?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                    syncIndexes.remove(index);
+                    updateIndexes();
+                }
+            });
+            indexesListPanel.add(panel);
         }
-    }
 
-    /**
-     *
-     * @param listener
-     */
-    public synchronized void addUIListener(UIListener listener) {
-        if (!_uiListeners.contains(listener)) {
-            _uiListeners.add(listener);
-        }
-    }
-
-    /**
-     *
-     * @param listener
-     */
-    public synchronized void removeUIListener(UIListener listener) {
-        _uiListeners.remove(listener);
-    }
-
-    /**
-     *
-     * @param status
-     */
-    private synchronized void fireUIEvent(UIAction action) {
-        UIEvent event = new UIEvent(this, action);
-        for (UIListener listener : _uiListeners) {
-            listener.actionPerformed(event);
-        }
+        indexesListPanel.repaint();
     }
 }

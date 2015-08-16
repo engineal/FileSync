@@ -22,7 +22,6 @@ import filesync.engine.DirectoryCrawler.CrawlState;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
@@ -86,7 +85,7 @@ public class SyncEngine {
      *
      * @param listener the listener to add
      */
-    public synchronized void addStatusListener(SyncListener listener) {
+    public synchronized void addSyncListener(SyncListener listener) {
         if (!_syncListeners.contains(listener)) {
             _syncListeners.add(listener);
         }
@@ -97,7 +96,7 @@ public class SyncEngine {
      *
      * @param listener the listener to remove
      */
-    public synchronized void removeStatusListener(SyncListener listener) {
+    public synchronized void removeSyncListener(SyncListener listener) {
         _syncListeners.remove(listener);
     }
 }

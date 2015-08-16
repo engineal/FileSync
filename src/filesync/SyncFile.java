@@ -28,7 +28,7 @@ import java.io.Serializable;
  */
 public class SyncFile implements Serializable {
 
-    private final String name;
+    private String name;
     private long size;
     private long lastModified;
     private boolean added;
@@ -87,6 +87,15 @@ public class SyncFile implements Serializable {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Set the name of the file
+     *
+     * @param name
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**

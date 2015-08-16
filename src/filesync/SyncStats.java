@@ -16,6 +16,8 @@
  */
 package filesync;
 
+import filesync.engine.FileCompare.SyncAction;
+
 /**
  * Holds the stats during a directory crawl
  *
@@ -26,17 +28,9 @@ public class SyncStats {
 
     private int fileCount;
     private int filesAdded;
-    private int filesUnmodified;
+    private int filesUnchanged;
     private int filesModified;
     private int filesRemoved;
-    private int processedCount;
-
-    /**
-     * Create a new empty stat set
-     */
-    public SyncStats() {
-        this(0);
-    }
 
     /**
      * Create a new empty stat set with specified file count
@@ -46,10 +40,9 @@ public class SyncStats {
     public SyncStats(int fileCount) {
         this.fileCount = fileCount;
         filesAdded = 0;
-        filesUnmodified = 0;
+        filesUnchanged = 0;
         filesModified = 0;
         filesRemoved = 0;
-        processedCount = 0;
     }
 
     /**
@@ -62,12 +55,12 @@ public class SyncStats {
     }
 
     /**
-     * Increase the file count by specified amount
+     * Set the file count to the specified amount
      *
-     * @param increment
+     * @param fileCount
      */
-    public void increaseFileCountBy(int increment) {
-        this.fileCount += increment;
+    public void setFileCount(int fileCount) {
+        this.fileCount = fileCount;
     }
 
     /**
@@ -80,26 +73,12 @@ public class SyncStats {
     }
 
     /**
-     * Increase the count of files added
-     */
-    public void increaseFilesAdded() {
-        filesAdded++;
-    }
-
-    /**
-     * Get the count of the files unmodified
+     * Get the count of the files unchanged
      *
      * @return
      */
-    public int getFilesUnmodified() {
-        return filesUnmodified;
-    }
-
-    /**
-     * Increase the count of files unmodified
-     */
-    public void increaseFilesUnmodified() {
-        filesUnmodified++;
+    public int getFilesUnchanged() {
+        return filesUnchanged;
     }
 
     /**
@@ -112,13 +91,6 @@ public class SyncStats {
     }
 
     /**
-     * Increase the count of files modified
-     */
-    public void increaseFilesModified() {
-        filesModified++;
-    }
-
-    /**
      * Get the count of the files removed
      *
      * @return
@@ -127,34 +99,37 @@ public class SyncStats {
         return filesRemoved;
     }
 
-    /**
-     * Increase the count of files removed
-     */
-    public void increaseFilesRemoved() {
-        filesRemoved++;
+    public double getPercent() {
+        if (fileCount > 0) {
+            int processed = filesAdded + filesModified + filesRemoved + filesUnchanged;
+            return processed / fileCount;
+        } else {
+            return 1.0;
+        }
     }
-
-    /**
-     * Get the count of the files processed
-     *
-     * @return
-     */
-    public int getProcessedCount() {
-        return processedCount;
-    }
-
-    /**
-     * Increase the count of files processed
-     */
-    public void increaseProcessedCount() {
-        processedCount++;
+    
+    public void fileProcessed(SyncAction action) {
+        switch (action) {
+            case Added:
+                filesAdded++;
+                break;
+            case Modified:
+                filesModified++;
+                break;
+            case Removed:
+                filesRemoved++;
+                break;
+            case Unchanged:
+                filesUnchanged++;
+                break;
+        }
     }
 
     @Override
     public String toString() {
         return "Total files: " + fileCount
                 + "\nTotal files added: " + filesAdded
-                + "\nTotal files unmodified: " + filesUnmodified
+                + "\nTotal files unchanged: " + filesUnchanged
                 + "\nTotal files modified: " + filesModified
                 + "\nTotal files removed: " + filesRemoved;
     }

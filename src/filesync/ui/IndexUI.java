@@ -19,7 +19,9 @@ package filesync.ui;
 import filesync.SyncIndex;
 import filesync.SyncInterval;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
 import java.io.File;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
@@ -30,7 +32,7 @@ import javax.swing.event.ChangeListener;
  *
  * @author Aaron Lucia
  */
-public class SyncIndexUI extends JFrame implements ActionListener, ChangeListener {
+public class IndexUI extends JFrame implements ActionListener, ChangeListener, KeyListener {
 
     private final SyncIndex index;
     private final DefaultListModel listModel;
@@ -40,10 +42,18 @@ public class SyncIndexUI extends JFrame implements ActionListener, ChangeListene
      *
      * @param index
      */
-    public SyncIndexUI(SyncIndex index) {
+    public IndexUI(SyncIndex index) {
         listModel = new DefaultListModel();
         initComponents();
         this.index = index;
+        index.addPropertyChangeListener((PropertyChangeEvent e) -> {
+            switch (e.getPropertyName()) {
+                case "name":
+                    updateTitle();
+                    break;
+            }
+        });
+        
         updateTitle();
         updateDirectories();
         updateSchedule();
@@ -59,8 +69,7 @@ public class SyncIndexUI extends JFrame implements ActionListener, ChangeListene
     private void initComponents() {
 
         intervalGroup = new javax.swing.ButtonGroup();
-        okButton = new javax.swing.JButton();
-        indexLabel = new javax.swing.JLabel();
+        indexTextField = new javax.swing.JTextField();
         tabbedPane = new javax.swing.JTabbedPane();
         directoriesPanel = new javax.swing.JPanel();
         addButton = new javax.swing.JButton();
@@ -82,18 +91,22 @@ public class SyncIndexUI extends JFrame implements ActionListener, ChangeListene
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
+        okButton = new javax.swing.JButton();
 
         setTitle("Sync Index");
 
-        okButton.setText("OK");
-        okButton.addActionListener(this);
+        indexTextField.addKeyListener(this);
 
-        indexLabel.setText("Sync Index");
-
-        addButton.setText("Add");
+        addButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/filesync/ui/images/plus-2x.png"))); // NOI18N
+        addButton.setToolTipText("Add");
+        addButton.setBorder(null);
+        addButton.setContentAreaFilled(false);
         addButton.addActionListener(this);
 
-        removeButton.setText("Remove");
+        removeButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/filesync/ui/images/x-2x.png"))); // NOI18N
+        removeButton.setToolTipText("Remove");
+        removeButton.setBorder(null);
+        removeButton.setContentAreaFilled(false);
         removeButton.addActionListener(this);
 
         directoriesScrollPane.setViewportView(directoriesList);
@@ -121,7 +134,7 @@ public class SyncIndexUI extends JFrame implements ActionListener, ChangeListene
                     .addComponent(addButton)
                     .addComponent(removeButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(directoriesScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 289, Short.MAX_VALUE)
+                .addComponent(directoriesScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 279, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -196,7 +209,7 @@ public class SyncIndexUI extends JFrame implements ActionListener, ChangeListene
                     .addComponent(yearRadioButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(repeatSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(265, Short.MAX_VALUE))
+                .addContainerGap(249, Short.MAX_VALUE))
         );
 
         tabbedPane.addTab("Schedule", schedulePanel);
@@ -238,30 +251,33 @@ public class SyncIndexUI extends JFrame implements ActionListener, ChangeListene
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel5)
-                .addContainerGap(235, Short.MAX_VALUE))
+                .addContainerGap(219, Short.MAX_VALUE))
         );
 
         tabbedPane.addTab("Stats", statsPanel);
+
+        okButton.setText("OK");
+        okButton.addActionListener(this);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(tabbedPane, javax.swing.GroupLayout.Alignment.TRAILING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(indexLabel)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addComponent(tabbedPane, javax.swing.GroupLayout.Alignment.TRAILING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(okButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(okButton))
+                    .addComponent(indexTextField))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(indexLabel)
+                .addComponent(indexTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(tabbedPane)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -275,41 +291,53 @@ public class SyncIndexUI extends JFrame implements ActionListener, ChangeListene
     // Code for dispatching events from components to event handlers.
 
     public void actionPerformed(java.awt.event.ActionEvent evt) {
-        if (evt.getSource() == okButton) {
-            SyncIndexUI.this.okButtonActionPerformed(evt);
-        }
-        else if (evt.getSource() == addButton) {
-            SyncIndexUI.this.addButtonActionPerformed(evt);
+        if (evt.getSource() == addButton) {
+            IndexUI.this.addButtonActionPerformed(evt);
         }
         else if (evt.getSource() == removeButton) {
-            SyncIndexUI.this.removeButtonActionPerformed(evt);
+            IndexUI.this.removeButtonActionPerformed(evt);
         }
         else if (evt.getSource() == enabledCheckBox) {
-            SyncIndexUI.this.scheduleActionPerformed(evt);
+            IndexUI.this.scheduleActionPerformed(evt);
         }
         else if (evt.getSource() == minuteRadioButton) {
-            SyncIndexUI.this.scheduleActionPerformed(evt);
+            IndexUI.this.scheduleActionPerformed(evt);
         }
         else if (evt.getSource() == hourRadioButton) {
-            SyncIndexUI.this.scheduleActionPerformed(evt);
+            IndexUI.this.scheduleActionPerformed(evt);
         }
         else if (evt.getSource() == dayRadioButton) {
-            SyncIndexUI.this.scheduleActionPerformed(evt);
+            IndexUI.this.scheduleActionPerformed(evt);
         }
         else if (evt.getSource() == weekRadioButton) {
-            SyncIndexUI.this.scheduleActionPerformed(evt);
+            IndexUI.this.scheduleActionPerformed(evt);
         }
         else if (evt.getSource() == monthRadioButton) {
-            SyncIndexUI.this.scheduleActionPerformed(evt);
+            IndexUI.this.scheduleActionPerformed(evt);
         }
         else if (evt.getSource() == yearRadioButton) {
-            SyncIndexUI.this.scheduleActionPerformed(evt);
+            IndexUI.this.scheduleActionPerformed(evt);
         }
+        else if (evt.getSource() == okButton) {
+            IndexUI.this.okButtonActionPerformed(evt);
+        }
+    }
+
+    public void keyPressed(java.awt.event.KeyEvent evt) {
+    }
+
+    public void keyReleased(java.awt.event.KeyEvent evt) {
+        if (evt.getSource() == indexTextField) {
+            IndexUI.this.indexTextFieldKeyReleased(evt);
+        }
+    }
+
+    public void keyTyped(java.awt.event.KeyEvent evt) {
     }
 
     public void stateChanged(javax.swing.event.ChangeEvent evt) {
         if (evt.getSource() == repeatSpinner) {
-            SyncIndexUI.this.repeatSpinnerStateChanged(evt);
+            IndexUI.this.repeatSpinnerStateChanged(evt);
         }
     }// </editor-fold>//GEN-END:initComponents
 
@@ -357,6 +385,10 @@ public class SyncIndexUI extends JFrame implements ActionListener, ChangeListene
         index.getSchedule().setRepeat(Integer.parseInt(repeatSpinner.getValue().toString()));
     }//GEN-LAST:event_repeatSpinnerStateChanged
 
+    private void indexTextFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_indexTextFieldKeyReleased
+        index.setName(indexTextField.getText());
+    }//GEN-LAST:event_indexTextFieldKeyReleased
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
     private javax.swing.JRadioButton dayRadioButton;
@@ -365,7 +397,7 @@ public class SyncIndexUI extends JFrame implements ActionListener, ChangeListene
     private javax.swing.JScrollPane directoriesScrollPane;
     private javax.swing.JCheckBox enabledCheckBox;
     private javax.swing.JRadioButton hourRadioButton;
-    private javax.swing.JLabel indexLabel;
+    private javax.swing.JTextField indexTextField;
     private javax.swing.ButtonGroup intervalGroup;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -386,7 +418,7 @@ public class SyncIndexUI extends JFrame implements ActionListener, ChangeListene
 
     private void updateTitle() {
         setTitle(index.getName());
-        indexLabel.setText(index.getName());
+        indexTextField.setText(index.getName());
     }
 
     private void updateDirectories() {

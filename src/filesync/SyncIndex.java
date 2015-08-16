@@ -17,6 +17,8 @@
 package filesync;
 
 import filesync.engine.SyncEngine;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,7 @@ public class SyncIndex extends SyncDirectory {
     private final List<File> directories;
     private SyncSchedule schedule;
     private final transient SyncEngine engine;
+    private final List<PropertyChangeListener> _propertyChangeListeners;
 
     /**
      * Create a new sync index with specified name
@@ -54,6 +57,19 @@ public class SyncIndex extends SyncDirectory {
         this.directories = directories;
         schedule = new SyncSchedule();
         engine = new SyncEngine(this);
+        _propertyChangeListeners = new ArrayList<>();
+    }
+    
+    /**
+     * Set the name of the file
+     *
+     * @param name
+     */
+    @Override
+    public void setName(String name) {
+        String oldName = getName();
+        super.setName(name);
+        propertyChanged("name", oldName, name);
     }
 
     /**
@@ -90,5 +106,32 @@ public class SyncIndex extends SyncDirectory {
      */
     public SyncEngine getSyncEngine() {
         return engine;
+    }
+    
+    /**
+     * Add a listener
+     *
+     * @param listener the listener to add
+     */
+    public synchronized void addPropertyChangeListener(PropertyChangeListener listener) {
+        if (!_propertyChangeListeners.contains(listener)) {
+            _propertyChangeListeners.add(listener);
+        }
+    }
+
+    /**
+     * Remove a listener
+     *
+     * @param listener the listener to remove
+     */
+    public synchronized void removePropertyChangeListener(PropertyChangeListener listener) {
+        _propertyChangeListeners.remove(listener);
+    }
+    
+    protected synchronized void propertyChanged(String propertyName, Object oldValue, Object newValue) {
+        PropertyChangeEvent event = new PropertyChangeEvent(this, propertyName, oldValue, newValue);
+        for (PropertyChangeListener listener : _propertyChangeListeners) {
+            listener.propertyChange(event);
+        }
     }
 }

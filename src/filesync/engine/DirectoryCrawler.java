@@ -22,7 +22,9 @@ import filesync.SyncFile;
 import filesync.SyncIndex;
 import filesync.SyncStats;
 import static filesync.engine.FileCompare.SyncAction;
+import filesync.io.SaveSyncIndex;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -46,8 +48,8 @@ public class DirectoryCrawler implements Runnable {
         return false;
     }
 
-    private final SyncIndex index;
     private Thread thread;
+    private final SyncIndex index;
     private CrawlState state;
     private SyncStats stats;
     private final List<SyncListener> _syncListeners;
@@ -55,6 +57,7 @@ public class DirectoryCrawler implements Runnable {
     public DirectoryCrawler(SyncIndex index, List<SyncListener> _syncListeners) {
         this.index = index;
         state = CrawlState.Stopped;
+        stats = new SyncStats(index.fileCount());
         this._syncListeners = _syncListeners;
     }
 
@@ -62,17 +65,24 @@ public class DirectoryCrawler implements Runnable {
     public void run() {
         System.out.println("Starting crawl");
         state = CrawlState.Running;
+        stats = new SyncStats(index.fileCount());
 
         try {
-            stats = new SyncStats(index.fileCount());
             compareDirs(index, index.getDirectories());
-            fireSyncStatusEvent(false, true, stats);
         } catch (Exception ex) {
             log.log(Level.SEVERE, ex.getMessage(), ex);
         }
 
         state = CrawlState.Stopped;
+        fireSyncEvent();
         System.out.println("Crawl finished");
+
+        try {
+            SaveSyncIndex.save(new File("Data", index.getName() + ".json"), index);
+            log.log(Level.FINE, "Saved {0}", index);
+        } catch (IOException ex) {
+            log.log(Level.SEVERE, ex.getMessage(), ex);
+        }
     }
 
     protected synchronized void compareDirs(SyncDirectory directory, List<File> directories) throws Exception {
@@ -91,10 +101,11 @@ public class DirectoryCrawler implements Runnable {
                 }
             }
         }
-        
+
         List<SyncFile> removedFiles = new ArrayList<>();
 
-        fireSyncStatusEvent(true, false, stats);
+        stats.setFileCount(index.fileCount());
+        fireSyncEvent();
 
         // Process all known files
         for (SyncFile syncFile : directory) {
@@ -118,13 +129,15 @@ public class DirectoryCrawler implements Runnable {
             }
 
             FileCompare comparer = new FileCompare(syncFile, files);
-            if (comparer.resolveConflict() == SyncAction.Removed) {
+            SyncAction action = comparer.resolveConflict();
+            stats.fileProcessed(action);
+            if (action == SyncAction.Removed) {
                 removedFiles.add(syncFile);
             }
 
-            fireSyncStatusEvent(true, false, stats);
+            fireSyncEvent();
         }
-        
+
         for (SyncFile syncFile : removedFiles) {
             directory.remove(syncFile);
         }
@@ -154,6 +167,7 @@ public class DirectoryCrawler implements Runnable {
             thread = new Thread(this, index.getName() + "Crawler");
             thread.start();
         }
+        fireSyncEvent();
     }
 
     public void pauseCrawl() {
@@ -168,6 +182,7 @@ public class DirectoryCrawler implements Runnable {
                     break;
             }
         }
+        fireSyncEvent();
     }
 
     public void stopCrawl() {
@@ -175,10 +190,11 @@ public class DirectoryCrawler implements Runnable {
             state = CrawlState.Stopped;
             thread.notify();
         }
+        fireSyncEvent();
     }
 
-    private synchronized void fireSyncStatusEvent(boolean syncing, boolean done, SyncStats stats) {
-        SyncEvent event = new SyncEvent(this, syncing, done, stats, index);
+    private synchronized void fireSyncEvent() {
+        SyncEvent event = new SyncEvent(this, state, stats, index);
         for (SyncListener listener : _syncListeners) {
             listener.statusUpdated(event);
         }

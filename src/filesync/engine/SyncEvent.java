@@ -18,6 +18,7 @@ package filesync.engine;
 
 import filesync.SyncIndex;
 import filesync.SyncStats;
+import filesync.engine.DirectoryCrawler.CrawlState;
 import java.util.EventObject;
 
 /**
@@ -27,25 +28,19 @@ import java.util.EventObject;
  */
 public class SyncEvent extends EventObject {
 
-    private final boolean syncing;
-    private final boolean done;
+    private final CrawlState state;
     private final SyncStats stats;
     private final SyncIndex index;
 
-    public SyncEvent(Object source, boolean syncing, boolean done, SyncStats stats, SyncIndex index) {
+    public SyncEvent(Object source, CrawlState state, SyncStats stats, SyncIndex index) {
         super(source);
-        this.syncing = syncing;
-        this.done = done;
+        this.state = state;
         this.stats = stats;
         this.index = index;
     }
 
-    public boolean isSyncing() {
-        return syncing;
-    }
-
-    public boolean isDone() {
-        return done;
+    public CrawlState getState() {
+        return state;
     }
 
     public SyncStats getStats() {
@@ -54,9 +49,5 @@ public class SyncEvent extends EventObject {
 
     public SyncIndex getIndex() {
         return index;
-    }
-
-    public double getPercent() {
-        return stats.getProcessedCount() / stats.getFileCount();
     }
 }
