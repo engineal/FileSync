@@ -24,12 +24,16 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Scanner;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -104,7 +108,7 @@ public class FileCompareTest {
      */
     public FileCompareTest(File[] files) {
         this.files = files;
-        assertTrue(files.length > 0);
+        assertThat(files.length, greaterThan(0));
     }
 
     /**
@@ -118,7 +122,7 @@ public class FileCompareTest {
             } catch (FileNotFoundException ex) {
                 fail(testFile.getName() + " cannot be created.");
             }
-            assertTrue(testFile.setLastModified(LAST_MODIFIED));
+            assertThat(testFile.setLastModified(LAST_MODIFIED), is(true));
         }
     }
 
@@ -140,12 +144,12 @@ public class FileCompareTest {
     @Test
     public void testGetActionAdded() {
         for (int i = 1; i < files.length; i++) {
-            assertTrue(files[i].delete());
+            assertThat(files[i].delete(), is(true));
         }
 
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED, true);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(SyncAction.Added, instance.getAction());
+        assertThat(instance.getAction(), is(SyncAction.Added));
     }
 
     /**
@@ -153,11 +157,11 @@ public class FileCompareTest {
      */
     @Test
     public void testGetActionRemoved() {
-        assertTrue(files[0].delete());
+        assertThat(files[0].delete(), is(true));
 
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(SyncAction.Removed, instance.getAction());
+        assertThat(instance.getAction(), is(SyncAction.Removed));
     }
 
     /**
@@ -173,7 +177,7 @@ public class FileCompareTest {
 
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(SyncAction.Modified, instance.getAction());
+        assertThat(instance.getAction(), is(SyncAction.Modified));
     }
 
     /**
@@ -183,7 +187,7 @@ public class FileCompareTest {
     public void testGetActionUnchanged() {
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(SyncAction.Unchanged, instance.getAction());
+        assertThat(instance.getAction(), is(SyncAction.Unchanged));
     }
 
     /**
@@ -194,15 +198,15 @@ public class FileCompareTest {
     @Test
     public void testResolveConflictAdded() throws Exception {
         for (int i = 1; i < files.length; i++) {
-            assertTrue(files[i].delete());
+            assertThat(files[i].delete(), is(true));
         }
 
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED, true);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(SyncAction.Added, instance.resolveConflict());
+        assertThat(instance.resolveConflict(), is(SyncAction.Added));
 
         for (File testFile : files) {
-            assertTrue(testFile.exists());
+            assertThat(testFile.exists(), is(true));
         }
     }
 
@@ -213,14 +217,14 @@ public class FileCompareTest {
      */
     @Test
     public void testResolveConflictRemoved() throws Exception {
-        assertTrue(files[0].delete());
+        assertThat(files[0].delete(), is(true));
 
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(SyncAction.Removed, instance.resolveConflict());
+        assertThat(instance.resolveConflict(), is(SyncAction.Removed));
 
         for (File testFile : files) {
-            assertFalse(testFile.exists());
+            assertThat(testFile.exists(), is(false));
         }
     }
 
@@ -240,20 +244,20 @@ public class FileCompareTest {
 
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(SyncAction.Modified, instance.resolveConflict());
+        assertThat(instance.resolveConflict(), is(SyncAction.Modified));
 
         for (File testFile : files) {
-            assertEquals(NEW_TEST_CONTENT.getBytes().length, testFile.length());
-            assertEquals(NEW_LAST_MODIFIED, testFile.lastModified());
+            assertThat(testFile.length(), equalTo(new Integer(NEW_TEST_CONTENT.getBytes().length).longValue()));
+            assertThat(testFile.lastModified(), equalTo(NEW_LAST_MODIFIED));
 
             try (Scanner in = new Scanner(testFile)) {
-                assertEquals(NEW_TEST_CONTENT, in.nextLine());
+                assertThat(in.nextLine(), equalTo(NEW_TEST_CONTENT));
             } catch (FileNotFoundException ex) {
                 fail(testFile.getName() + " cannot be read.");
             }
         }
 
-        assertEquals(SyncAction.Unchanged, instance.getAction());
+        assertThat(instance.getAction(), is(SyncAction.Unchanged));
     }
 
     /**
@@ -265,7 +269,7 @@ public class FileCompareTest {
     public void testResolveConflictUnchanged() throws Exception {
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(SyncAction.Unchanged, instance.resolveConflict());
+        assertThat(instance.resolveConflict(), is(SyncAction.Unchanged));
     }
 
     /**
@@ -281,6 +285,6 @@ public class FileCompareTest {
 
         SyncFile syncFile = new SyncFile("Test", TEST_CONTENT.getBytes().length, LAST_MODIFIED);
         FileCompare instance = new FileCompare(syncFile, files);
-        assertEquals(files[0], instance.compareFiles());
+        assertThat(files[0], equalTo(instance.compareFiles()));
     }
 }

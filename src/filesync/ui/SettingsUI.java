@@ -49,7 +49,7 @@ public class SettingsUI extends JFrame implements ActionListener {
         this.syncIndexes = syncIndexes;
         updateIndexes();
 
-        versionLabel.setText(FileSync.VERSION);
+        versionLabel.setText(FileSync.VERSION.toString());
     }
 
     /**

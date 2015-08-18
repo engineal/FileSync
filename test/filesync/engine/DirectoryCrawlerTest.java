@@ -17,8 +17,12 @@
 package filesync.engine;
 
 import filesync.SyncDirectory;
+import filesync.SyncIndex;
+import filesync.engine.DirectoryCrawler.CrawlState;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
+import static org.hamcrest.Matchers.is;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -70,27 +74,14 @@ public class DirectoryCrawlerTest {
     }
 
     /**
-     * Test of getState method, of class DirectoryCrawler.
-     */
-    @Test
-    public void testGetState() {
-        DirectoryCrawler instance = null;
-        DirectoryCrawler.CrawlState expResult = null;
-        DirectoryCrawler.CrawlState result = instance.getState();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
      * Test of startCrawl method, of class DirectoryCrawler.
      */
     @Test
     public void testStartCrawl() {
-        DirectoryCrawler instance = null;
+        SyncIndex index = new SyncIndex("Test Index");
+        DirectoryCrawler instance = new DirectoryCrawler(index, new ArrayList<>());
         instance.startCrawl();
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertThat(instance.getState(), is(CrawlState.Running));
     }
 
     /**
@@ -98,10 +89,13 @@ public class DirectoryCrawlerTest {
      */
     @Test
     public void testPauseCrawl() {
-        DirectoryCrawler instance = null;
+        SyncIndex index = new SyncIndex("Test Index");
+        DirectoryCrawler instance = new DirectoryCrawler(index, new ArrayList<>());
+        instance.startCrawl();
         instance.pauseCrawl();
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //assertThat(instance.getState(), is(CrawlState.Paused));
+        instance.pauseCrawl();
+        //assertThat(instance.getState(), is(CrawlState.Running));
     }
 
     /**
@@ -109,9 +103,10 @@ public class DirectoryCrawlerTest {
      */
     @Test
     public void testStopCrawl() {
-        DirectoryCrawler instance = null;
+        SyncIndex index = new SyncIndex("Test Index");
+        DirectoryCrawler instance = new DirectoryCrawler(index, new ArrayList<>());
+        instance.startCrawl();
         instance.stopCrawl();
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertThat(instance.getState(), is(CrawlState.Stopped));
     }
 }

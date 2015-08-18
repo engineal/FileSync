@@ -16,8 +16,6 @@
  */
 package filesync.io.json;
 
-import filesync.io.json.SyncDirectorySerializer;
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import filesync.SyncDirectory;
 import filesync.SyncIndex;

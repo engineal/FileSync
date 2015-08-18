@@ -16,6 +16,9 @@
  */
 package filesync;
 
+import filesync.distribution.Install;
+import filesync.distribution.Update;
+import filesync.distribution.Version;
 import filesync.io.SaveSyncIndex;
 import filesync.ui.Console;
 import filesync.ui.FileSyncSystemTray;
@@ -29,6 +32,7 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -41,12 +45,7 @@ import javax.swing.UnsupportedLookAndFeelException;
  */
 public class FileSync {
 
-    /**
-     * The current version of the program
-     *
-     * TODO: To be replaced by version in manifest (or elsewhere)
-     */
-    public static final String VERSION = "1.0.DEV";
+    public static final Version VERSION = Version.parseVersion("v0.1.0-DEV");
     private static final Logger log = Logger.getLogger(FileSync.class.getName());
     private static FileSync instance;
 
@@ -61,28 +60,25 @@ public class FileSync {
         }
 
         if (instance == null) {
-            List<SyncIndex> syncIndexes = new ArrayList<>();
-            File dataDir = new File("Data");
-            for (File file : dataDir.listFiles()) {
-                try {
-                    SyncIndex index = SaveSyncIndex.load(file);
-                    syncIndexes.add(index);
-                    log.log(Level.SEVERE, "Loaded {0}", index);
-                } catch (IOException | ClassNotFoundException ex) {
-                    log.log(Level.SEVERE, ex.getMessage(), ex);
-                }
+            try {
+                Install install = Install.getInstall(args);
+                instance = new FileSync(install.getPreferences());
+            } catch (Exception ex) {
+                log.log(Level.SEVERE, ex.getMessage(), ex);
             }
-            instance = new FileSync(syncIndexes);
         }
 
         instance.processArgs(args);
     }
 
+    private final Preferences preferences;
     private final List<SyncIndex> syncIndexes;
 
-    private FileSync(List<SyncIndex> syncIndexes) {
+    private FileSync(Preferences preferences) {
+        this.preferences = preferences;
+
         try {
-            FileHandler fh = new FileHandler("log.log");
+            FileHandler fh = new FileHandler(preferences.getLogLocation().getCanonicalPath());
             fh.setFormatter(new LogFormatter());
             fh.setLevel(Level.ALL);
             log.addHandler(fh);
@@ -97,7 +93,17 @@ public class FileSync {
             log.log(Level.SEVERE, ex.getMessage(), ex);
         }
 
-        this.syncIndexes = syncIndexes;
+        syncIndexes = new ArrayList<>();
+        File dataDir = preferences.getIndexesLocation();
+        for (File file : dataDir.listFiles()) {
+            try {
+                SyncIndex index = SaveSyncIndex.load(file);
+                syncIndexes.add(index);
+                log.log(Level.SEVERE, "Loaded {0}", index);
+            } catch (IOException | ClassNotFoundException ex) {
+                log.log(Level.SEVERE, ex.getMessage(), ex);
+            }
+        }
     }
 
     private void processArgs(String[] args) {
