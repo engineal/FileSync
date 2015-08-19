@@ -16,7 +16,11 @@
  */
 package filesync;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -26,13 +30,23 @@ import java.io.File;
 public class Preferences {
 
     private File indexesLocation;
-    private File logLocation;
-    private File updateLocation;
-    
+    private final IndexList indexes;
+    private boolean prereleases;
+
+    private final transient List<PropertyChangeListener> _propertyChangeListeners;
+
     public Preferences(File installLocation) {
-        indexesLocation = new File(installLocation, "data");
-        logLocation = new File(new File(installLocation, "logs"), "log.log");
-        updateLocation = new File(installLocation, "updates");
+        this(new File(installLocation, "data"),
+                new IndexList(),
+                false);
+    }
+
+    public Preferences(File indexesLocation, IndexList indexes, boolean prereleases) {
+        this.indexesLocation = indexesLocation;
+        this.indexes = indexes;
+        this.prereleases = prereleases;
+
+        _propertyChangeListeners = new ArrayList<>();
     }
 
     public File getIndexesLocation() {
@@ -40,22 +54,49 @@ public class Preferences {
     }
 
     public void setIndexesLocation(File indexesLocation) {
+        File oldValue = getIndexesLocation();
         this.indexesLocation = indexesLocation;
+        propertyChanged("indexesLocation", oldValue, indexesLocation);
+    }
+    
+    public IndexList getIndexes() {
+        return indexes;
     }
 
-    public File getLogLocation() {
-        return logLocation;
+    public boolean isPrereleases() {
+        return prereleases;
     }
 
-    public void setLogLocation(File logLocation) {
-        this.logLocation = logLocation;
+    public void setPrereleases(boolean prereleases) {
+        boolean oldValue = isPrereleases();
+        this.prereleases = prereleases;
+        propertyChanged("prereleases", oldValue, prereleases);
     }
 
-    public File getUpdateLocation() {
-        return updateLocation;
+    /**
+     * Add a listener
+     *
+     * @param listener the listener to add
+     */
+    public synchronized void addPropertyChangeListener(PropertyChangeListener listener) {
+        if (!_propertyChangeListeners.contains(listener)) {
+            _propertyChangeListeners.add(listener);
+        }
     }
 
-    public void setUpdateLocation(File updateLocation) {
-        this.updateLocation = updateLocation;
+    /**
+     * Remove a listener
+     *
+     * @param listener the listener to remove
+     */
+    public synchronized void removePropertyChangeListener(PropertyChangeListener listener) {
+        _propertyChangeListeners.remove(listener);
+    }
+
+    private synchronized void propertyChanged(String propertyName, Object oldValue, Object newValue) {
+        PropertyChangeEvent event = new PropertyChangeEvent(this, propertyName, oldValue, newValue);
+        for (PropertyChangeListener listener : _propertyChangeListeners) {
+            listener.propertyChange(event);
+        }
     }
 }

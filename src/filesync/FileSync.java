@@ -17,22 +17,17 @@
 package filesync;
 
 import filesync.distribution.Install;
-import filesync.distribution.Update;
 import filesync.distribution.Version;
-import filesync.io.SaveSyncIndex;
 import filesync.ui.Console;
 import filesync.ui.FileSyncSystemTray;
 import filesync.ui.SettingsUI;
 import java.awt.AWTException;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -59,11 +54,29 @@ public class FileSync {
             log.log(Level.SEVERE, ex.getMessage(), ex);
         }
 
+        ConsoleHandler ch = new ConsoleHandler();
+        ch.setFormatter(new LogFormatter());
+        ch.setLevel(Level.ALL);
+        log.addHandler(ch);
+
+        log.setLevel(Level.ALL);
+        
         if (instance == null) {
             try {
-                Install install = Install.getInstall(args);
+                Install install = Install.getInstall(false);
                 instance = new FileSync(install.getPreferences());
-            } catch (Exception ex) {
+
+                Runtime.getRuntime().addShutdownHook(new Thread() {
+                    @Override
+                    public void run() {
+                        try {
+                            install.writePreferences();
+                        } catch (IOException ex) {
+                            log.log(Level.SEVERE, ex.getMessage(), ex);
+                        }
+                    }
+                });
+            } catch (IOException ex) {
                 log.log(Level.SEVERE, ex.getMessage(), ex);
             }
         }
@@ -72,38 +85,9 @@ public class FileSync {
     }
 
     private final Preferences preferences;
-    private final List<SyncIndex> syncIndexes;
 
     private FileSync(Preferences preferences) {
         this.preferences = preferences;
-
-        try {
-            FileHandler fh = new FileHandler(preferences.getLogLocation().getCanonicalPath());
-            fh.setFormatter(new LogFormatter());
-            fh.setLevel(Level.ALL);
-            log.addHandler(fh);
-
-            ConsoleHandler ch = new ConsoleHandler();
-            ch.setFormatter(new LogFormatter());
-            ch.setLevel(Level.ALL);
-            log.addHandler(ch);
-
-            log.setLevel(Level.ALL);
-        } catch (IOException | SecurityException ex) {
-            log.log(Level.SEVERE, ex.getMessage(), ex);
-        }
-
-        syncIndexes = new ArrayList<>();
-        File dataDir = preferences.getIndexesLocation();
-        for (File file : dataDir.listFiles()) {
-            try {
-                SyncIndex index = SaveSyncIndex.load(file);
-                syncIndexes.add(index);
-                log.log(Level.SEVERE, "Loaded {0}", index);
-            } catch (IOException | ClassNotFoundException ex) {
-                log.log(Level.SEVERE, ex.getMessage(), ex);
-            }
-        }
     }
 
     private void processArgs(String[] args) {
@@ -112,7 +96,7 @@ public class FileSync {
         if (console.isTray()) {
             java.awt.EventQueue.invokeLater(() -> {
                 try {
-                    FileSyncSystemTray tray = new FileSyncSystemTray(syncIndexes);
+                    FileSyncSystemTray tray = new FileSyncSystemTray(preferences);
                     tray.setVisible(true);
                 } catch (AWTException ex) {
                     log.log(Level.SEVERE, ex.getMessage(), ex);
@@ -122,7 +106,7 @@ public class FileSync {
 
         if (console.isSettings()) {
             java.awt.EventQueue.invokeLater(() -> {
-                SettingsUI settings = new SettingsUI(syncIndexes);
+                SettingsUI settings = new SettingsUI(preferences);
                 settings.setVisible(true);
             });
         }

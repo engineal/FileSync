@@ -25,18 +25,13 @@ import java.io.IOException;
  * @version Aug 17, 2015
  */
 public class UnixInstall extends Install {
-    
-    public UnixInstall(String[] args) throws IOException {
-        super(args);
+
+    public UnixInstall(boolean inPlace) throws IOException {
+        super(new File("/usr/local", "FileSync"), inPlace);
     }
 
     @Override
-    protected File getInstallLocation() {
-        return new File("/usr/local", "FileSync");
-    }
-
-    @Override
-    public File writeInstallScript(File currentPath, String[] args) throws IOException {
+    protected String writeInstallScript(File currentPath) throws IOException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 }

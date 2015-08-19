@@ -31,11 +31,11 @@ import java.util.List;
  */
 public class SyncIndex extends SyncDirectory {
 
-    public static final long serialVersionUID = 1;
     private final List<File> directories;
     private SyncSchedule schedule;
+    
     private final transient SyncEngine engine;
-    private final List<PropertyChangeListener> _propertyChangeListeners;
+    private final transient List<PropertyChangeListener> _propertyChangeListeners;
 
     /**
      * Create a new sync index with specified name
@@ -67,9 +67,9 @@ public class SyncIndex extends SyncDirectory {
      */
     @Override
     public void setName(String name) {
-        String oldName = getName();
+        String oldValue = getName();
         super.setName(name);
-        propertyChanged("name", oldName, name);
+        propertyChanged("name", oldValue, name);
     }
 
     /**
@@ -128,7 +128,7 @@ public class SyncIndex extends SyncDirectory {
         _propertyChangeListeners.remove(listener);
     }
     
-    protected synchronized void propertyChanged(String propertyName, Object oldValue, Object newValue) {
+    private synchronized void propertyChanged(String propertyName, Object oldValue, Object newValue) {
         PropertyChangeEvent event = new PropertyChangeEvent(this, propertyName, oldValue, newValue);
         for (PropertyChangeListener listener : _propertyChangeListeners) {
             listener.propertyChange(event);

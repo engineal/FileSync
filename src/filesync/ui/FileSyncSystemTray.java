@@ -16,6 +16,7 @@
  */
 package filesync.ui;
 
+import filesync.Preferences;
 import filesync.SyncIndex;
 import java.awt.AWTException;
 import java.awt.SystemTray;
@@ -35,7 +36,7 @@ import javax.swing.JPopupMenu;
  */
 public class FileSyncSystemTray {
 
-    private final List<SyncIndex> syncIndexes;
+    private final Preferences preferences;
 
     private final TrayIcon trayIcon;
     private final SystemTray tray;
@@ -44,8 +45,8 @@ public class FileSyncSystemTray {
     private final JMenuItem syncItem;
     private final JMenuItem pauseItem;
 
-    public FileSyncSystemTray(List<SyncIndex> syncIndexes) {
-        this.syncIndexes = syncIndexes;
+    public FileSyncSystemTray(Preferences preferences) {
+        this.preferences = preferences;
 
         ImageIcon icon = new ImageIcon(getClass().getResource("/filesync/ui/images/loop-circular-2x.png"));
         trayIcon = new TrayIcon(icon.getImage());
@@ -124,13 +125,13 @@ public class FileSyncSystemTray {
 
     private void showSettings() {
         java.awt.EventQueue.invokeLater(() -> {
-            SettingsUI settings = new SettingsUI(syncIndexes);
+            SettingsUI settings = new SettingsUI(preferences);
             settings.setVisible(true);
         });
     }
 
     private void sync() {
-        for (SyncIndex index : syncIndexes) {
+        for (SyncIndex index : preferences.getIndexes()) {
             index.getSyncEngine().startCrawl();
         }
     }

@@ -16,19 +16,15 @@
  */
 package filesync.distribution;
 
+import filesync.distribution.github.GHAsset;
+import filesync.distribution.github.GHRelease;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.time.LocalDateTime;
 import java.util.List;
-import org.kohsuke.github.GHAsset;
-import org.kohsuke.github.GHRelease;
-import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GitHub;
-import org.kohsuke.github.PagedIterable;
 
 /**
  *
@@ -37,18 +33,16 @@ import org.kohsuke.github.PagedIterable;
  */
 public class Update {
 
-    private static final String GITHUB_USER = "engineal";
-    private static final String GITHUB_REPO = "FileSync";
+    private static GHRelease getLatestRelease(boolean prerelease) throws IOException {
+        List<GHRelease> releases = GHRelease.getReleases();
 
-    private static GHRelease getLatestRelease() throws IOException {
-        GHRepository repo = GitHub.connectAnonymously().getUser(GITHUB_USER).getRepository(GITHUB_REPO);
-        PagedIterable<GHRelease> releases = repo.listReleases();
-
-        GHRelease latest = releases.asList().get(0);
-        Version latestVersion = Version.parseVersion(latest.getTagName());
+        GHRelease latest = null;
+        Version latestVersion = Version.parseVersion("v0.0.0");
         for (GHRelease release : releases) {
             Version releaseVersion = Version.parseVersion(release.getTagName());
-            if (releaseVersion.compareTo(latestVersion) > 0) {
+            if (release.isPrerelease() == prerelease
+                    && !release.isDraft()
+                    && releaseVersion.compareTo(latestVersion) > 0) {
                 latest = release;
                 latestVersion = releaseVersion;
             }
@@ -57,35 +51,46 @@ public class Update {
         return latest;
     }
 
-    private final GHRelease latestRelease;
+    private GHRelease latestRelease;
     private final File updateLocation;
+    private final boolean prerelease;
 
-    public Update(File updateLocation) throws IOException {
-        latestRelease = getLatestRelease();
+    public Update(File updateLocation, boolean prerelease) throws IOException {
+        latestRelease = getLatestRelease(prerelease);
         this.updateLocation = updateLocation;
+        this.prerelease = prerelease;
     }
 
     public boolean isUpdate(Version version) throws IOException {
-        return Version.parseVersion(latestRelease.getTagName()).compareTo(version) > 0;
+        if (latestRelease != null) {
+            return Version.parseVersion(latestRelease.getTagName()).compareTo(version) < 0;
+        }
+        return false;
     }
 
     public File update() throws IOException {
-        File jarLocation = null;
-
-        List<GHAsset> assets = latestRelease.getAssets();
-        for (GHAsset asset : assets) {
-            File fl = new File(updateLocation, asset.getName());
-            if (fl.getName().equals("FileSync.jar")) {
-                jarLocation = fl;
-            }
-            
-            URL website = new URL(asset.getBrowserDownloadUrl());
-            try (ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-                    FileOutputStream fos = new FileOutputStream(fl)) {
-                fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+        if (latestRelease == null) {
+            latestRelease = getLatestRelease(prerelease);
+            if (latestRelease == null) {
+                latestRelease = getLatestRelease(true);
             }
         }
 
-        return jarLocation;
+        if (latestRelease != null) {
+            List<GHAsset> assets = latestRelease.getAssets();
+            for (GHAsset asset : assets) {
+                if (asset.getName().endsWith(".jar")) {
+                    File fl = new File(updateLocation, asset.getName());
+                    URL website = new URL(asset.getBrowserDownloadUrl());
+                    try (ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+                            FileOutputStream fos = new FileOutputStream(fl)) {
+                        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                    }
+                    return fl;
+                }
+            }
+        }
+        
+        return null;
     }
 }

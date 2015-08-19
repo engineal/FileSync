@@ -16,15 +16,13 @@
  */
 package filesync;
 
-import java.io.Serializable;
-
 /**
  * Holds the schedule to sync
  *
  * @author Aaron Lucia
  * @version Jul 23, 2015
  */
-public class SyncSchedule implements Serializable {
+public class SyncSchedule {
 
     private boolean enabled;
     private SyncInterval interval;

@@ -17,16 +17,16 @@
 package filesync.ui;
 
 import filesync.FileSync;
+import filesync.Preferences;
 import filesync.SyncIndex;
-import filesync.engine.DirectoryCrawler;
-import filesync.engine.DirectoryCrawler.CrawlState;
-import filesync.engine.SyncEvent;
-import filesync.engine.SyncListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.io.File;
 import java.util.List;
 import javax.swing.BoxLayout;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -36,20 +36,37 @@ import javax.swing.JOptionPane;
  */
 public class SettingsUI extends JFrame implements ActionListener {
 
-    private final List<SyncIndex> syncIndexes;
+    private final Preferences preferences;
 
     /**
      * Creates new form FileSyncUI
      *
-     * @param syncIndexes
+     * @param preferences
      */
-    public SettingsUI(List<SyncIndex> syncIndexes) {
+    public SettingsUI(Preferences preferences) {
         initComponents();
         indexesListPanel.setLayout(new BoxLayout(indexesListPanel, javax.swing.BoxLayout.Y_AXIS));
-        this.syncIndexes = syncIndexes;
-        updateIndexes();
 
+        this.preferences = preferences;
+        preferences.addPropertyChangeListener((PropertyChangeEvent e) -> {
+            switch (e.getPropertyName()) {
+                case "indexesLocation":
+                    dataTextField.setText(preferences.getIndexesLocation().toString());
+                    break;
+                case "prereleases":
+                    prereleaseCheckBox.setSelected(preferences.isPrereleases());
+                    break;
+            }
+        });
+
+        preferences.getIndexes().addPropertyChangeListener((PropertyChangeEvent e) -> {
+            updateIndexes();
+        });
+
+        updateIndexes();
         versionLabel.setText(FileSync.VERSION.toString());
+        dataTextField.setText(preferences.getIndexesLocation().toString());
+        prereleaseCheckBox.setSelected(preferences.isPrereleases());
     }
 
     /**
@@ -72,6 +89,10 @@ public class SettingsUI extends JFrame implements ActionListener {
         jLabel2 = new javax.swing.JLabel();
         versionLabel = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        dataTextField = new javax.swing.JTextField();
+        dataButton = new javax.swing.JButton();
+        prereleaseCheckBox = new javax.swing.JCheckBox();
         exitButton = new javax.swing.JButton();
         closeButton = new javax.swing.JButton();
 
@@ -116,8 +137,6 @@ public class SettingsUI extends JFrame implements ActionListener {
                 .addContainerGap())
         );
 
-        syncButton.getAccessibleContext().setAccessibleName("Sync All");
-
         tabbedPane.addTab("Indexes", indexesPanel);
 
         jLabel1.setText("FileSync by Aaron Lucia");
@@ -129,6 +148,18 @@ public class SettingsUI extends JFrame implements ActionListener {
 
         jLabel3.setText("© Aaron Lucia 2015");
 
+        jLabel4.setLabelFor(dataTextField);
+        jLabel4.setText("Data Location:");
+
+        dataTextField.setEditable(false);
+
+        dataButton.setText("Browse...");
+        dataButton.setToolTipText("Select Data Location");
+        dataButton.addActionListener(this);
+
+        prereleaseCheckBox.setText("Enable Prereleases");
+        prereleaseCheckBox.addActionListener(this);
+
         javax.swing.GroupLayout aboutPanelLayout = new javax.swing.GroupLayout(aboutPanel);
         aboutPanel.setLayout(aboutPanelLayout);
         aboutPanelLayout.setHorizontalGroup(
@@ -136,13 +167,23 @@ public class SettingsUI extends JFrame implements ActionListener {
             .addGroup(aboutPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(aboutPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel3)
                     .addGroup(aboutPanelLayout.createSequentialGroup()
-                        .addComponent(jLabel2)
+                        .addComponent(jLabel4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(versionLabel))
-                    .addComponent(jLabel1))
-                .addContainerGap(372, Short.MAX_VALUE))
+                        .addComponent(dataTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 316, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(dataButton))
+                    .addGroup(aboutPanelLayout.createSequentialGroup()
+                        .addGroup(aboutPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel3)
+                            .addGroup(aboutPanelLayout.createSequentialGroup()
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(versionLabel))
+                            .addComponent(jLabel1)
+                            .addComponent(prereleaseCheckBox))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         aboutPanelLayout.setVerticalGroup(
             aboutPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -155,7 +196,14 @@ public class SettingsUI extends JFrame implements ActionListener {
                     .addComponent(versionLabel))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel3)
-                .addContainerGap(367, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(aboutPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel4)
+                    .addComponent(dataTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(dataButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(prereleaseCheckBox)
+                .addContainerGap(313, Short.MAX_VALUE))
         );
 
         tabbedPane.addTab("About", aboutPanel);
@@ -207,6 +255,12 @@ public class SettingsUI extends JFrame implements ActionListener {
         else if (evt.getSource() == closeButton) {
             SettingsUI.this.closeButtonActionPerformed(evt);
         }
+        else if (evt.getSource() == dataButton) {
+            SettingsUI.this.dataButtonActionPerformed(evt);
+        }
+        else if (evt.getSource() == prereleaseCheckBox) {
+            SettingsUI.this.prereleaseCheckBoxActionPerformed(evt);
+        }
     }// </editor-fold>//GEN-END:initComponents
 
     private void closeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeButtonActionPerformed
@@ -215,15 +269,14 @@ public class SettingsUI extends JFrame implements ActionListener {
 
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
         SyncIndex index = new SyncIndex("Name");
-        syncIndexes.add(index);
-        updateIndexes();
+        preferences.getIndexes().add(index);
 
         IndexUI indexUI = new IndexUI(index);
         indexUI.setVisible(true);
     }//GEN-LAST:event_addButtonActionPerformed
 
     private void syncButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_syncButtonActionPerformed
-        for (SyncIndex index : syncIndexes) {
+        for (SyncIndex index : preferences.getIndexes()) {
             index.getSyncEngine().startCrawl();
         }
     }//GEN-LAST:event_syncButtonActionPerformed
@@ -232,10 +285,27 @@ public class SettingsUI extends JFrame implements ActionListener {
         System.exit(0);
     }//GEN-LAST:event_exitButtonActionPerformed
 
+    private void dataButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dataButtonActionPerformed
+        JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(new File("."));
+        chooser.setDialogTitle("Select location for data");
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setAcceptAllFileFilterUsed(false);
+        if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            preferences.setIndexesLocation(chooser.getSelectedFile());
+        }
+    }//GEN-LAST:event_dataButtonActionPerformed
+
+    private void prereleaseCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_prereleaseCheckBoxActionPerformed
+        preferences.setPrereleases(prereleaseCheckBox.isSelected());
+    }//GEN-LAST:event_prereleaseCheckBoxActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel aboutPanel;
     private javax.swing.JButton addButton;
     private javax.swing.JButton closeButton;
+    private javax.swing.JButton dataButton;
+    private javax.swing.JTextField dataTextField;
     private javax.swing.JButton exitButton;
     private javax.swing.JPanel indexesListPanel;
     private javax.swing.JPanel indexesPanel;
@@ -243,6 +313,8 @@ public class SettingsUI extends JFrame implements ActionListener {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JCheckBox prereleaseCheckBox;
     private javax.swing.JButton syncButton;
     private javax.swing.JTabbedPane tabbedPane;
     private javax.swing.JLabel versionLabel;
@@ -251,14 +323,13 @@ public class SettingsUI extends JFrame implements ActionListener {
     private void updateIndexes() {
         indexesListPanel.removeAll();
 
-        for (SyncIndex index : syncIndexes) {
+        for (SyncIndex index : preferences.getIndexes()) {
             IndexPanel panel = new IndexPanel(index);
             panel.addActionListener((ActionEvent e) -> {
                 if (e.getActionCommand().equals("delete")
                         && JOptionPane.showConfirmDialog(panel, "Are you sure you want to delete " + index.getName() + "?",
                                 "Are you sure?", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-                    syncIndexes.remove(index);
-                    updateIndexes();
+                    preferences.getIndexes().remove(index);
                 }
             });
             indexesListPanel.add(panel);

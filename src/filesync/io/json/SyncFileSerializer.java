@@ -33,39 +33,35 @@ import java.lang.reflect.Type;
  * @author Aaron Lucia
  * @version Aug 15, 2015
  */
-public class SyncDirectorySerializer implements JsonSerializer<SyncDirectory>, JsonDeserializer<SyncDirectory> {
+public class SyncFileSerializer implements JsonSerializer<SyncFile>, JsonDeserializer<SyncFile> {
 
     @Override
-    public JsonElement serialize(SyncDirectory src, Type typeOfSrc, JsonSerializationContext context) {
+    public JsonElement serialize(SyncFile src, Type typeOfSrc, JsonSerializationContext context) {
         JsonObject object = new JsonObject();
         object.addProperty("name", src.getName());
         object.addProperty("size", src.getSize());
         object.addProperty("lastModified", src.getLastModified());
         object.addProperty("added", src.isAdded());
-
-        JsonArray array = new JsonArray();
-        for (SyncFile file : src) {
-            array.add(new IndexBuilder().toJsonTree(file));
-        }
-
-        object.add("files", array);
         return object;
     }
 
     @Override
-    public SyncDirectory deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public SyncFile deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         JsonObject object = (JsonObject) json;
         String name = object.getAsJsonPrimitive("name").getAsString();
         long size = object.getAsJsonPrimitive("size").getAsLong();
         long lastModified = object.getAsJsonPrimitive("lastModified").getAsLong();
         boolean added = object.getAsJsonPrimitive("added").getAsBoolean();
 
-        SyncDirectory dir = new SyncDirectory(name, size, lastModified, added);
-        JsonArray array = object.getAsJsonArray("files");
-        for (JsonElement file : array) {
-            dir.add(new IndexBuilder().fromJson(file, SyncFile.class));
+        if (object.has("files")) {
+            SyncDirectory dir = new SyncDirectory(name, size, lastModified, added);
+            JsonArray array = object.getAsJsonArray("files");
+            for (JsonElement file : array) {
+                dir.add(new IndexBuilder().fromJson(file, SyncFile.class));
+            }
+            return dir;
+        } else {
+            return new SyncFile(name, size, lastModified, added);
         }
-
-        return dir;
     }
 }

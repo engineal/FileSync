@@ -17,7 +17,6 @@
 package filesync;
 
 import java.io.File;
-import java.io.Serializable;
 
 /**
  * Stores the last state of a file, so that it is known when comparing
@@ -26,7 +25,7 @@ import java.io.Serializable;
  * @author Aaron Lucia
  * @version Aug 14, 2015
  */
-public class SyncFile implements Serializable {
+public class SyncFile {
 
     private String name;
     private long size;

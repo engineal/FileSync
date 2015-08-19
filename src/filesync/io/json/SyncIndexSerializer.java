@@ -17,7 +17,6 @@
 package filesync.io.json;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -27,13 +26,11 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import filesync.SyncDirectory;
 import filesync.SyncFile;
 import filesync.SyncIndex;
 import filesync.SyncSchedule;
 import java.io.File;
 import java.lang.reflect.Type;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,10 +58,7 @@ public class SyncIndexSerializer implements JsonSerializer<SyncIndex>, JsonDeser
 
         JsonArray filesArray = new JsonArray();
         for (SyncFile file : src) {
-            GsonBuilder gson = new GsonBuilder();
-            gson.registerTypeAdapter(SyncIndex.class, new SyncIndexSerializer());
-            gson.registerTypeAdapter(SyncDirectory.class, new SyncDirectorySerializer());
-            filesArray.add(gson.create().toJsonTree(file));
+            filesArray.add(new IndexBuilder().toJsonTree(file));
         }
         object.add("files", filesArray);
         return object;
@@ -78,7 +72,7 @@ public class SyncIndexSerializer implements JsonSerializer<SyncIndex>, JsonDeser
         JsonArray directoriesArray = object.getAsJsonArray("directories");
         List<File> directories = new ArrayList<>();
         for (JsonElement path : directoriesArray) {
-            directories.add(new File(new Gson().fromJson(path, String.class)));
+            directories.add(new File(path.getAsString()));
         }
         
         SyncIndex dir = new SyncIndex(name, directories);
@@ -88,10 +82,7 @@ public class SyncIndexSerializer implements JsonSerializer<SyncIndex>, JsonDeser
         
         JsonArray filesArray = object.getAsJsonArray("files");
         for (JsonElement file : filesArray) {
-            GsonBuilder gson = new GsonBuilder();
-            gson.registerTypeAdapter(SyncIndex.class, new SyncIndexSerializer());
-            gson.registerTypeAdapter(SyncDirectory.class, new SyncDirectorySerializer());
-            dir.add(gson.create().fromJson(file, SyncFile.class));
+            dir.add(new IndexBuilder().fromJson(file, SyncFile.class));
         }
         
         return dir;

@@ -136,7 +136,17 @@ public final class Version implements Comparable<Version> {
 
     @Override
     public String toString() {
-        return "v" + major + "." + minor + "." + patch + "-" + prerelease + "+" + build;
+        String prereleaseText = "";
+        if (prerelease != null) {
+            prereleaseText = "-" + prerelease;
+        }
+        
+        String buildText = "";
+        if (build != null) {
+            buildText = "+" + build;
+        }
+        
+        return "v" + major + "." + minor + "." + patch + prereleaseText + buildText;
     }
 
     @Override

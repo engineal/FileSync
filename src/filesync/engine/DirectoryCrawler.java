@@ -22,9 +22,7 @@ import filesync.SyncFile;
 import filesync.SyncIndex;
 import filesync.SyncStats;
 import static filesync.engine.FileCompare.SyncAction;
-import filesync.io.SaveSyncIndex;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -76,13 +74,6 @@ public class DirectoryCrawler implements Runnable {
         state = CrawlState.Stopped;
         fireSyncEvent();
         System.out.println("Crawl finished");
-
-        try {
-            SaveSyncIndex.save(new File("Data", index.getName() + ".json"), index);
-            log.log(Level.FINE, "Saved {0}", index);
-        } catch (IOException ex) {
-            log.log(Level.SEVERE, ex.getMessage(), ex);
-        }
     }
 
     protected synchronized void compareDirs(SyncDirectory directory, List<File> directories) throws Exception {
